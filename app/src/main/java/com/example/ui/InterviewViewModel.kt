@@ -15,12 +15,160 @@ import java.util.UUID
 
 enum class AppTab {
     DASHBOARD,
+    CONCEPTS,
     EXAM,
     SPACED_REPETITION,
     SAVED_EXAMS,
     ANALYTICS,
     MOCK_INTERVIEW
 }
+
+data class BasicConcept(
+    val id: String,
+    val titleAr: String,
+    val titleEn: String,
+    val category: String, // "Fiber", "CCNA", "Power"
+    val summaryAr: String,
+    val summaryEn: String,
+    val detailedExplanationAr: String,
+    val detailedExplanationEn: String,
+    val diagramType: String? = null
+)
+
+val preloadedConcepts = listOf(
+    BasicConcept(
+        id = "concept_01",
+        titleAr = "شبكات الـ GPON وهيكلتها",
+        titleEn = "GPON Networks & Architecture",
+        category = "Fiber",
+        summaryAr = "تقنية شبكات الألياف البصرية الخاملة الأكثر انتشاراً لربط المستخدمين بالسنترال الرئيسي.",
+        summaryEn = "The most widely deployed passive optical network technology for connecting users to core exchange switches.",
+        detailedExplanationAr = "شبكة GPON (Gigabit Passive Optical Network) هي شبكة ألياف ضوئية منفعلة (خاملة) لا تستخدم أي عناصر طاقة نشطة لتوزيع الإشارة. تتألف من الـ OLT (Optical Line Terminal) في السنترال، ومجزئات الإشارة Passive Splitters، والـ ONT (Optical Network Terminal) عند المشتركين. تدعم سرعات تحميل 2.488 Gbps وسرعات رفع 1.244 Gbps باستخدام أطوال موجية 1490nm للهابط و1310nm للصاعد.",
+        detailedExplanationEn = "GPON is a point-to-multipoint passive distribution network. It does not contain active electrical components. Instead, passive optical splitters route signals from the Optical Line Terminal (OLT) in the central exchange to multiple Optical Network Terminals (ONTs) at subscriber locations. Operating downstream at 1490nm (2.488 Gbps) and upstream at 1310nm (1.244 Gbps).",
+        diagramType = "gpon_split"
+    ),
+    BasicConcept(
+        id = "concept_02",
+        titleAr = "جهاز الـ OTDR وفحص الفايبر",
+        titleEn = "OTDR & Fiber Diagnosis",
+        category = "Fiber",
+        summaryAr = "أداة قياس طول الفايبر والوهن وتحديد مواقع الكسور واللحامات.",
+        summaryEn = "An essential diagnosis device used to measure cable lengths, loss, splices, and detect cable cuts.",
+        detailedExplanationAr = "جهاز الـ OTDR (Optical Time Domain Reflectometer) يرسل نبضات ليزيرية عالية الكثافة داخل الليف البصري ويقيس الضوء المرتد والمشتت (Backscattering) ليرسم منحنياً بيانياً. يتيح تحديد بعد الكسر بدقة بالغة بالامتار وحساب نسبة الفقد (Attenuation / Loss inside splices) بالديسيبل (dB).",
+        detailedExplanationEn = "An OTDR is an optoelectronic instrument used to characterize optical fibers. It injects a series of optical pulses into the fiber and extracts light that is scattered or reflected back. This measures attenuation coefficients, splice losses, connector reflections, and locates fiber fractures precisely.",
+        diagramType = "otdr_curve"
+    ),
+    BasicConcept(
+        id = "concept_03",
+        titleAr = "توصيل كوابل الـ FTTH ومواصفتها",
+        titleEn = "FTTH Cabling & Standards",
+        category = "Fiber",
+        summaryAr = "شبكة الألياف الممتدة للبيوت وأنواع كوابل الشعرة الأحادية.",
+        summaryEn = "Fiber deployment options extending straight to the subscriber home using standard single-mode cables.",
+        detailedExplanationAr = "تعتمد مشاريع الـ FTTH (Fiber to the Home) على كوابل شعرة أحادية النمط (Single-Mode Fiber) متطابقة مع المعيار G.652 لأنابيب الكواشف وسهولة الانحناء المعياري G.657 للفروع الداخلية. يتراوح الفقد النظري للضوء بحدود 0.22 dB/km عند الطول الموجي 1550nm، وتتراوح طاقة الاستقبال بمودم العميل بين -8 dBm إلى -27 dBm كأقصى وهن مسموح.",
+        detailedExplanationEn = "FTTH structures bring gigabit-class throughput to homes. Utilizing premium single-mode drop fiber designed under G.652D backbone norms or bend-insensitive G.657A standards inside client flats. Expected light attenuation is 0.22 dB/km at 1550nm, aiming for an ONT receive optical budget between -8 dBm and -27 dBm.",
+        diagramType = "gpon_split"
+    ),
+    BasicConcept(
+        id = "concept_04",
+        titleAr = "حسابات فقد مجزئ الإشارة (Splitters)",
+        titleEn = "Optical Splitter Loss Formulas",
+        category = "Fiber",
+        summaryAr = "الفاقد الرياضي لقدرة الإشارة الضوئية عند استخدام مجزءات GPON.",
+        summaryEn = "The mathematical light power drop associated with various optical split ratios.",
+        detailedExplanationAr = "يعمل مجزئ الإشارة البصرية (Optical Splitter) بالانقسام الثنائي. حساب الفقد النظري لكل انكسار 1:2 يعادل فقد 3 dB. بمعادلة الفقد التقريبية: Loss = 3 * log2(N)، فيكون مجزئ 1:4 يفقد حوالي 6-7 dB، ومجزئ 1:8 يفقد 9-10 dB، ومجزئ 1:16 يفقد 13-14 dB، ومجزئ 1:32 يفقد 16-17 dB.",
+        detailedExplanationEn = "Optical splitters divide the power of laser light into multiple streams. Every binary split (1:2) introduces a theoretical 3 dB loss (plus connector/excess losses). Computed using Loss ≈ 3 * log2(N), so a 1:4 splitter experiences ~6-7 dB insertion loss, 1:8 is ~10 dB, 1:16 is ~14 dB, and a 1:32 splitter exhibits ~17-18 dB drop.",
+        diagramType = "gpon_split"
+    ),
+    BasicConcept(
+        id = "concept_05",
+        titleAr = "بروتوكول OSPF وبنية الشبكة",
+        titleEn = "OSPF Routing & Area Design",
+        category = "CCNA",
+        summaryAr = "بروتوكول تسيير هرمي يعتمد على حالة الارتباط وحساب أقصر مسار لكلف الروابط.",
+        summaryEn = "A hierarchical link-state routing protocol computing shortest path speeds recursively.",
+        detailedExplanationAr = "بروتوكول OSPF (Open Shortest Path First) هو بروتوكول توجيه داخلي (IGP) ينتمي لفئة Link-State. يبني كل راوتر خارطة طوبولوجية كاملة للشبكة مستخدماً خوارزمية ديكسترا (SPF) لحساب المسار الأقل كلفة. يعتمد OSPF على نظام المناطق حيث تمثل Area 0 العمود الفقري، وترسل تحديثات الـ LSAs عند حدوث تغييرات فقط للحفاظ على الباندويدث.",
+        detailedExplanationEn = "OSPF is a robust Link-State dynamic routing protocol. It utilizes Dijkstra's SPF algorithm to determine the loop-free shortest path to any IP prefix. OSPF organizes routers in a hierarchical zone tree where Area 0 is the mandatory backbone. Rather than routing tables, routers exchange Link State Advertisements (LSAs) for instant topology syncing.",
+        diagramType = "ospf_topology"
+    ),
+    BasicConcept(
+        id = "concept_06",
+        titleAr = "مبادئ الـ IP Subnetting والـ CIDR",
+        titleEn = "IP Subnetting & CIDR Logic",
+        category = "CCNA",
+        summaryAr = "تقسيم الشبكات الكبيرة إلى مجموعات فرعية للحد من استهلاك الآي بي.",
+        summaryEn = "Dividing large logical networks into smaller subnets to mitigate IP depletion.",
+        detailedExplanationAr = "تنسيق الـ IP Subnetting يقتطع بتات من جزء المضيف (Host bits) ويضيفها لقسم الشبكة (Network bits) باستخدام قناع شبكة فرعية (Subnet Mask) مخصص. يرمز له بنظام CIDR (مثال /24 أو /26). يتم حساب عدد الأجهزة المتاحة بالمعادلة 2^n - 2 (حيث يقتطع عنوان الشبكة وعنوان البث العام).",
+        detailedExplanationEn = "Subnetting borrows host bits from an IP address to create smaller logical subdivisions. Standardized via CIDR notation (e.g., /26), it improves security and confines broadcast domains. Usable hosts satisfy the equation 2^H - 2, where the first IP is reserved as the Network ID, and the last host represents the broadcast address.",
+        diagramType = "ospf_topology"
+    ),
+    BasicConcept(
+        id = "concept_07",
+        titleAr = "تقسيم المبدل للشبكات الافتراضية VLANs",
+        titleEn = "Virtual LANs & Trunking Ports",
+        category = "CCNA",
+        summaryAr = "عزل أجهزة المشتركين منطقياً داخل نفس السويتش لزيادة الأمان والأداء.",
+        summaryEn = "Logically dividing a physical switch into isolated broadcast domains to enhance control.",
+        detailedExplanationAr = "الـ VLANs (Virtual Local Area Networks) تعزل منافذ جهاز المبدل (Switch Ports) منطقياً لتكوين نطاقات بث منفصلة (Isolated Broadcast Domains) تماماً كما لو كانت على سويتشات مختلفة. يتم ربط السويتشات معاً باستخدام منافذ Trunk لتمرير ترافيك كافة الـ VLANs بوسم معيار IEEE 802.1Q.",
+        detailedExplanationEn = "VLANs isolate network segments on the same physical switch, confining broadcast storms and maximizing security. To span VLANs across multiple switches, trunk ports are established, tagging Ethernet frames using the standard 802.1Q encapsulation protocols.",
+        diagramType = "ospf_topology"
+    ),
+    BasicConcept(
+        id = "concept_08",
+        titleAr = "تأمين وحل مشاكل بروتوكول الـ DHCP",
+        titleEn = "DHCP & APIPA Troubleshooting",
+        category = "CCNA",
+        summaryAr = "توزيع خوادم عناوين IP التلقائية ومعيار فشل الاتصال APIPA.",
+        summaryEn = "Automatic client IP provisioning and standard link-local failover ranges.",
+        detailedExplanationAr = "بروتوكول DHCP يسلم عناوين الـ IP والقناع والـ Gateway تلقائياً للأشخاص المتصلين عبر خطوات DORA (Discover, Offer, Request, Acknowledge). وفي حال تعذر وجود الخادم، يقوم نظام التشغيل بويندوز بتعيين عنوان APIPA من النطاق 169.254.0.0/16 محلياً لتمكين الاتصال بالـ LAN.",
+        detailedExplanationEn = "DHCP automates IP client setups via the 4-step DORA exchange. If a client sends a broadcast DHCP Discover but secures no lease from the router, APIPA assigns a temporary link-local IP in the 169.254.0.0/16 pool, allowing flat ad-hoc local communication.",
+        diagramType = "ospf_topology"
+    ),
+    BasicConcept(
+        id = "concept_09",
+        titleAr = "نظام موحد التيار الـ Rectifier بالسنترال",
+        titleEn = "Rectifier Panel & -48V DC Busbar",
+        category = "Power",
+        summaryAr = "تحويل طاقة المتردد العمومية المتقلبة لطاقة مستمرة آمنة لتشغيل السنترالات وشحن البطاريات.",
+        summaryEn = "Converting variable utility AC grid power to stable -48V DC power and managing battery charges.",
+        detailedExplanationAr = "لوحة الموحد (Rectifier) هي القلب النابض لطاقة السنترال. تحول التيار المتردد AC (220V/380V) لتيار مستمر DC سالب بمقدار -48V لتغذية المعالجات والكروت دون تداخل مغناطيسي، كما تعوم وتشحن البطاريات باستمرار لصد نقص التيار المفاجئ.",
+        detailedExplanationEn = "A Rectifier cabinet converts high-power input commercial AC into stable -48V DC electricity, the industry standard. This powers core telecom processors (minimizing electrical noise interference) while continuously delivering a trickling float charge to backup battery strings.",
+        diagramType = "rectifier"
+    ),
+    BasicConcept(
+        id = "concept_10",
+        titleAr = "لوحة التحويل التلقائي للقوى الـ ATS",
+        titleEn = "Automatic Transfer Switch (ATS)",
+        category = "Power",
+        summaryAr = "مراقبة التيار العمومي ومفتاح ربط مولد الديزل لحماية السنترال.",
+        summaryEn = "Monitoring primary utility lines and switching power paths to diesel generator loops.",
+        detailedExplanationAr = "الـ ATS (Automatic Transfer Switch) هو مفتاح تبديل كهرومغناطيسي ذكي يراقب خط التغذية العمومي الأساسي. عند انقطاع الكهرباء، تشعر اللوحة تلقائياً وتطلق أمراً للمولد الاحتياطي بالتشغيل، وعندما يستقر جهد المولد تقوم بتحويل مفاتيح الإتصال للمولد فوراً.",
+        detailedExplanationEn = "An ATS is an automated double-throw switchboard. It monitors tension in public AC lines. Upon blackout detection, it signals the Backup Generator to start, waits for electrical output stabilization, and safely routes the exchange's main busbar intake away from the dead grid.",
+        diagramType = "ats_switch"
+    ),
+    BasicConcept(
+        id = "concept_11",
+        titleAr = "بنك بطاريات الـ VRLA للكبائن",
+        titleEn = "VRLA Battery Bank Chemistry",
+        category = "Power",
+        summaryAr = "بطاريات اتصالات مغلقة لتغذية كبائن MSAN السريعة لساعات.",
+        summaryEn = "Maintenance-free oxygen recombination cells kept inside compact outdoor cabinets.",
+        detailedExplanationAr = "تستخدم كبائن MSAN الخارجية بطاريات الرصاص الحمضية المغلقة بصمامات (VRLA) سواء AGM أو Gel. تتركب على التوالي لتكون تيار -48V DC (24 خلية بسعة 2V لكل واحدة). تتميز بطاقات صيانة معدومة، وعدم تسريب غاز هيدروجين هيدروليكي كالبطاريات المفتوحة.",
+        detailedExplanationEn = "VRLA batteries AGM or Gel models are sealed with custom pressure safety valves. Operating via internal oxygen recombination to eliminate water evaporation. Running series connections of 24 cells sums 2V blocks to deliver stable -48V backup feed for MSAN nodes.",
+        diagramType = "battery_series"
+    ),
+    BasicConcept(
+        id = "concept_12",
+        titleAr = "المولدات وسرعتها التزامنية",
+        titleEn = "Standby Generators Synchronous Speed",
+        category = "Power",
+        summaryAr = "علاقة عدد الأقطاب والتردد بمحركات الديزل للحفاظ على تردد 50Hz بالسنترال.",
+        summaryEn = "How magnetic alternators regulate engine speeds to deliver a steady 50Hz stream.",
+        detailedExplanationAr = "المولد الديزل (Standby Generator) يؤمن طاقة المتردد عند الخطر. السرعة الميكانيكية التي يجب أن يدور بها العمود تدعى السرعة التزامنية (Ns). تحت تردد 50Hz ومجموعة 4 أقطاب مغناطيسية، يحسب دوران الديزل بالقانون Ns = 120 * f / P فيكون تمامه 1500 RPM بالتوازي.",
+        detailedExplanationEn = "A standby diesel generator converts mechanical torque into AC power. Its Synchronous Speed (Ns in RPM) is tied directly to the grid frequency f (50Hz in Egypt) and magnetic poles P via Ns = 120 * f / P. With a standard 4-pole alternator, the engine must lock at exactly 1500 RPM.",
+        diagramType = "battery_series"
+    )
+)
 
 data class ReferenceDocument(
     val id: String,
@@ -205,6 +353,58 @@ class InterviewViewModel(
         }
     }
 
+    // --- Basic Concepts with AI Search & Explanation State ---
+    var conceptsList = preloadedConcepts + additionalConcepts
+    var searchConceptQuery by mutableStateOf("")
+        private set
+    var selectedConcept by mutableStateOf<BasicConcept?>(null)
+        private set
+    var conceptAiExplanation by mutableStateOf("")
+        private set
+    var isExplainingConcept by mutableStateOf(false)
+        private set
+
+    fun setConceptSearch(query: String) {
+        searchConceptQuery = query
+    }
+
+    fun getFilteredConcepts(): List<BasicConcept> {
+        val q = searchConceptQuery.trim()
+        if (q.isEmpty()) return conceptsList
+        return conceptsList.filter {
+            it.titleAr.contains(q, ignoreCase = true) ||
+            it.titleEn.contains(q, ignoreCase = true) ||
+            it.summaryAr.contains(q, ignoreCase = true) ||
+            it.summaryEn.contains(q, ignoreCase = true) ||
+            it.category.contains(q, ignoreCase = true)
+        }
+    }
+
+    fun selectConcept(concept: BasicConcept?) {
+        selectedConcept = concept
+        conceptAiExplanation = ""
+    }
+
+    fun fetchAiExplanationForSelectedConcept() {
+        val concept = selectedConcept ?: return
+        isExplainingConcept = true
+        conceptAiExplanation = ""
+        viewModelScope.launch {
+            try {
+                val explanation = com.example.data.GeminiClient.explainConcept(concept.titleEn, concept.category)
+                conceptAiExplanation = explanation
+            } catch (e: Exception) {
+                conceptAiExplanation = if (isEnglish) {
+                    "Error fetching explanation: ${e.localizedMessage}"
+                } else {
+                    "عذراً، حدث خطأ أثناء الاتصال بالذكاء الاصطناعي: ${e.localizedMessage}"
+                }
+            } finally {
+                isExplainingConcept = false
+            }
+        }
+    }
+
     init {
         initDailyChallenge()
         generateNewSubnetChallenge()
@@ -282,26 +482,25 @@ class InterviewViewModel(
     // Time-Stress Exam Mode Config
     var isStressModeEnabled by mutableStateOf(false)
 
+    // Timed Quiz Mode State
+    var isTimedQuizMode by mutableStateOf(false)
+    var examTimeRemainingSeconds by mutableStateOf(0)
+    var initialQuizTimeSeconds by mutableStateOf(0)
+
     // AI Mock Interview Simulation State
-    var activeMockQuestions = listOf(
-        "اشرح بالتفصيل الفرق بين شبكات GPON السلبية (PON) والشبكات النشطة (AON). أيهما تفضل المصرية للاتصالات WE لبناء الـ FTTH للمنازل ولماذا؟" to 
-        "Explain the main differences between passive GPON and active AON networks. Which does Telecom Egypt prioritize for residential FTTH deployments and why?",
-        
-        "إذا طلبت منك الإدارة تقسيم شبكة فرعية تخدم سنترالاً عملاقاً يحتوي على 30 مهندساً وعميلاً نشطاً باستخدام الـ Subnetting، ما هو أفضل قناع شبكة CIDR مناسب، وما هو عنوان الشبكة وعنوان البث المباشر (Broadcast)؟" to 
-        "If you are requested to subnet a network block to host 30 active engineers/nodes using VLSM, what is the best CIDR subnet mask, and what are the matching network and broadcast coordinates?",
-        
-        "عند انقطاع تيار الشبكة الكهربائية العمومية (AC) في كابينة الـ MSAN الخارجية، اشرح بالتفصيل وبشكل متسلسل دور الـ ATS، وجهاز الـ Rectifier، وبطاريات الطوارئ الاحتياطية لضمان عدم توقف المكالمات والإنترنت." to 
-        "When the utility AC electricity fails in an active MSAN cabinet, outline the chronological roles of the ATS, the Rectifier cabinet, and the lead-acid VRLA backup batteries to avoid service dropout.",
-        
-        "كيف تفرق على شاشة جهاز الـ OTDR بين الحدث العاكس (Reflective Event) والحدث غير العاكس (Non-Reflective Event)؟ اذكر أمثلة لكل منهما في مسار كابل الألياف الضوئية للمشروع." to 
-        "How do you distinguish between a Reflective Event and a Non-Reflective Event on an OTDR trace? Provide practical physical structure/failure examples for each in a fiber link."
-    )
-    
+    var activeMockQuestions = listOf<Question>()
     var currentMockIndex by mutableStateOf(0)
     var mockUserAnswer by mutableStateOf("")
     var isEvaluatingMockAnswer by mutableStateOf(false)
     var mockEvaluationResult by mutableStateOf<InterviewEvaluation?>(null)
     var mockInterviewError by mutableStateOf<String?>(null)
+
+    // Store user answers and evaluations for the current session
+    val mockSessionHistory = androidx.compose.runtime.mutableStateListOf<MockAnsweredItem>()
+    var showMockSessionSummary by mutableStateOf(false)
+    var isGeneratingSessionReport by mutableStateOf(false)
+    var sessionReportFeedback by mutableStateOf("")
+    var sessionAverageScore by mutableStateOf(0)
 
     fun startMockInterview() {
         currentMockIndex = 0
@@ -309,12 +508,21 @@ class InterviewViewModel(
         isEvaluatingMockAnswer = false
         mockEvaluationResult = null
         mockInterviewError = null
+        activeMockQuestions = QuestionsData.allQuestions.shuffled().take(10)
+        
+        mockSessionHistory.clear()
+        showMockSessionSummary = false
+        isGeneratingSessionReport = false
+        sessionReportFeedback = ""
+        sessionAverageScore = 0
+        
         currentTab = AppTab.MOCK_INTERVIEW
     }
 
     fun submitMockAnswer() {
-        val questionPair = activeMockQuestions[currentMockIndex]
-        val questionText = if (isEnglish) questionPair.second else questionPair.first
+        val question = activeMockQuestions[currentMockIndex]
+        val questionText = question.getLocalizedText(isEnglish)
+        
         if (mockUserAnswer.trim().length < 5) {
             mockInterviewError = if (isEnglish) "Please write a comprehensive engineering answer (at least 5 characters) to evaluate!" else "يرجى كتابة إجابة هندسية كافية (5 أحرف على الأقل) لنقوم بتقييمها!"
             return
@@ -325,6 +533,17 @@ class InterviewViewModel(
             try {
                 val eval = GeminiClient.evaluateInterviewAnswer(questionText, mockUserAnswer)
                 mockEvaluationResult = eval
+                
+                // Track in history
+                mockSessionHistory.add(
+                    MockAnsweredItem(
+                        questionAr = question.text,
+                        questionEn = question.englishText ?: question.text,
+                        userAnswer = mockUserAnswer,
+                        evaluation = eval
+                    )
+                )
+                
                 AudioSynthesizer.playSuccess()
             } catch (e: Exception) {
                 mockInterviewError = if (isEnglish) "Evaluation failed: ${e.message}" else "فشل التقييم: ${e.message}"
@@ -334,6 +553,73 @@ class InterviewViewModel(
         }
     }
 
+    fun generateSessionFeedbackReport() {
+        showMockSessionSummary = true
+        isGeneratingSessionReport = true
+        sessionReportFeedback = ""
+        
+        viewModelScope.launch {
+            try {
+                val answeredCount = mockSessionHistory.size
+                val totalScore = mockSessionHistory.sumOf { it.evaluation.score }
+                sessionAverageScore = if (answeredCount > 0) totalScore / answeredCount else 0
+                
+                if (GeminiClient.isApiKeyAvailable()) {
+                    sessionReportFeedback = GeminiClient.generateSessionDetailedFeedback(mockSessionHistory.toList())
+                } else {
+                    sessionReportFeedback = getLocalFallbackSessionReport(sessionAverageScore, mockSessionHistory.toList())
+                }
+                AudioSynthesizer.playFanfare()
+            } catch (e: Exception) {
+                sessionReportFeedback = if (isEnglish) {
+                    "Analysis failure: ${e.message}. Quick summary score: $sessionAverageScore% across ${mockSessionHistory.size} questions."
+                } else {
+                    "فشل إعداد التقرير التفاعلي: ${e.message}. ملخص رقمي سريع: معدل القبول $sessionAverageScore% عبر إجابة ${mockSessionHistory.size} أسئلة."
+                }
+            } finally {
+                isGeneratingSessionReport = false
+            }
+        }
+    }
+
+    fun getLocalFallbackSessionReport(averageScore: Int, history: List<MockAnsweredItem>): String {
+        val acceptedStringAr = when {
+            averageScore >= 85 -> "معتمد كمهندس أول فني جاهز للتسليم والتشغيل المباشر بسنترالات WE"
+            averageScore >= 70 -> "مقبول مبدئياً للخدمات الهندسية الميدانية مع التوصية بفترة تدريبية"
+            else -> "يحتاج لإعادة المقابلة والاطلاع على المراجع الملحقة وأطلس القوانين"
+        }
+        val acceptedStringEn = when {
+            averageScore >= 85 -> "Senior Engineering Level - Highly compliant with Telecom Egypt requirements."
+            averageScore >= 70 -> "Competent Field Level - Approved subject to brief practical onboarding."
+            else -> "Unsatisfactory Level - Recommended for thorough review of standard telemetry coefficients."
+        }
+        return """
+            📊 الخلاصة ومستوى القبول المعياري (Overall Summary & Acceptance Level):
+            - معدل الأداء الإجمالي: $averageScore%
+            - حالة لجنة التقييم: $acceptedStringAr
+            - HR Level: $acceptedStringEn
+
+            🌟 نقاط القوة الفنية التي تم رصدها (Technical Strengths Demonstrated):
+            ${if (averageScore >= 70) {
+                "- إظهار فهم طيب لمصطلحات ومفردات السنترال والاتصالات الأساسية.\n- الالتزام بشروحات متسلسلة لعمليات الطاقة و/أو شبكات النفاذ."
+            } else {
+                "- الالتزام بمحاولة الإجابة والمحاكاة.\n- فهم أولي لبيئة العمل الهندسية."
+            }}
+
+            ⚠️ فجوات المعرفة ونقاط الضعف (Knowledge Gaps & Pitfalls):
+            ${if (averageScore < 85) {
+                "- عدم الاهتمام بذكر النطاقات والأرقام الدقيقة في حسابات فقد الألياف أو فولت النظم المستمرة سالب 48 فولت.\n- الحاجة لمراجعة دقيقة لآليات حماية القوى والـ ATS."
+            } else {
+                "- تفاصيل طفيفة حول تصميم شبكات الخوادم وتقادم بعض كبائن الـ MSAN القديمة."
+            }}
+
+            🚀 خارطة الطريق وتوصيات التعيين لمشروع WE:
+            1. ننصحك بالرجوع المتكرر إلى "صفحة أطلس القوانين والمعادلات" للاطلاع التام وممارسة نموذج حساب الفقد البصري.
+            2. قم بإعادة التدريب المستمر وزيادة سعة المفردات في قسم SRS لحفظ مصطلحات ومفاهيم الفايبر كـ Cleaver, Fusion Splice, OTDR, Event Zone.
+            3. شارك في الاختبارات التنافسية بمختلف المحاور لقياس تقدم مستواك في مهارات التقسيم الفرعي للشبكات والـ Routing Protocols.
+        """.trimIndent()
+    }
+
     fun nextMockQuestion() {
         if (currentMockIndex < activeMockQuestions.size - 1) {
             currentMockIndex++
@@ -341,9 +627,8 @@ class InterviewViewModel(
             mockEvaluationResult = null
             mockInterviewError = null
         } else {
-            // Completed all questions, exit back to dashboard
-            currentTab = AppTab.DASHBOARD
-            AudioSynthesizer.playFanfare()
+            // Completed all questions, transition to generating detailed session summary report
+            generateSessionFeedbackReport()
         }
     }
 
@@ -397,6 +682,41 @@ class InterviewViewModel(
         reviewExam = null
         aiGenerationError = null
         isUsingFallbackAiGen = false
+        isTimedQuizMode = false
+        examTimeRemainingSeconds = 0
+    }
+
+    fun startTimedQuiz(category: String, size: Int = 15) {
+        val exam = QuestionsData.getRandomExam(category, size)
+        activeExam = exam
+        currentQuestionIndex = 0
+        selectedOptionIndex = null
+        showImmediateFeedback = false
+        currentTab = AppTab.EXAM
+        reviewExam = null
+        aiGenerationError = null
+        isUsingFallbackAiGen = false
+        
+        // Setup timer: 20 seconds per question (e.g. 15 questions * 20s = 300 seconds / 5 mins)
+        isTimedQuizMode = true
+        examTimeRemainingSeconds = size * 20
+        initialQuizTimeSeconds = size * 20
+    }
+
+    fun autoSubmitTimedQuiz() {
+        val exam = activeExam ?: return
+        if (exam.isCompleted) return
+        
+        // Let's mark all unanswered questions as answered with index -1 (incorrect)
+        val updatedQuestions = exam.questions.map { eq ->
+            if (!eq.isAnswered) {
+                eq.copy(isAnswered = true, selectedIndex = -1)
+            } else {
+                eq
+            }
+        }
+        activeExam = exam.copy(questions = updatedQuestions)
+        finishExam()
     }
 
     fun generateAiExam(numberOfQuestions: Int = 5) {
@@ -429,7 +749,7 @@ class InterviewViewModel(
                     val customExam = Exam(
                         title = "امتحان ذكي مخصص (Gemini) 🤖",
                         category = "Mixed",
-                        questions = generated.map { ExamQuestion(it) }
+                        questions = generated.map { ExamQuestion(it.getShuffled()) }
                     )
                     activeExam = customExam
                 } else {
@@ -492,6 +812,7 @@ class InterviewViewModel(
                         "Fiber" -> "يرجى توليد أسئلة متخصصة وجديدة في هندسة الألياف الضوئية وكوابل الفايبر والشبكات الضوئية النشطة والسلبية FTTH, GPON, OTDR, Splice loss, optical budget."
                         "CCNA" -> "يرجى توليد أسئلة متخصصة وجديدة في هندسة الشبكات والـ CCNA والـ Subnetting وتوجيه الترافيك والـ Routing protocols OSPF, EIGRP, Static routing, OSI layers."
                         "Power" -> "يرجى توليد أسئلة متخصصة وجديدة في أنظمة القوى والباور ومصادر الطاقة الاحتياطية ومولدات السولار والبطاريات والريكتاير وتبريد الكبائن ومزودات الطاقة غير المنقطعة UPS."
+                        "IT INFRASTRUCTURE" -> "يرجى توليد أسئلة متخصصة في البنية التحتية لتكنولوجيا المعلومات IT Infrastructure، والتي تشمل السيرفرات، لينكس، النسخ الاحتياطي، المحاكاة الافتراضية Virtualization، قواعد البيانات، والـ Active Directory."
                         else -> "يرجى توليد أسئلة في هندسة الاتصالات والشبكات الشاملة."
                     }
                     
@@ -514,7 +835,7 @@ class InterviewViewModel(
                     val customExam = Exam(
                         title = title,
                         category = category,
-                        questions = generated.map { ExamQuestion(it) }
+                        questions = generated.map { ExamQuestion(it.getShuffled()) }
                     )
                     
                     activeExam = customExam
@@ -626,6 +947,8 @@ class InterviewViewModel(
     fun closeExam() {
         activeExam = null
         currentTab = AppTab.DASHBOARD
+        isTimedQuizMode = false
+        examTimeRemainingSeconds = 0
     }
 
     fun openSavedExamForReview(exam: Exam) {
@@ -677,9 +1000,9 @@ class InterviewViewModel(
 
             srsFilteredList = if (sortedSrsList.isNotEmpty()) {
                 // Return explicitly added/practiced ones first, followed by some from general list for exploration
-                sortedSrsList + otherCandidates.shuffled().take(10)
+                (sortedSrsList + otherCandidates.shuffled().take(10)).map { it.getShuffled() }
             } else {
-                otherCandidates.shuffled()
+                otherCandidates.shuffled().map { it.getShuffled() }
             }
 
             currentSrsIndex = 0

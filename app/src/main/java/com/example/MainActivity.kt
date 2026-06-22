@@ -22,6 +22,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,6 +56,7 @@ import androidx.compose.ui.layout.ContentScale
 import android.graphics.BitmapFactory
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.foundation.Image
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -152,6 +158,7 @@ class MainActivity : ComponentActivity() {
                             } else {
                                 when (currentTab) {
                                     AppTab.DASHBOARD -> DashboardScreen(viewModel = viewModel)
+                                    AppTab.CONCEPTS -> ConceptsScreen(viewModel = viewModel)
                                     AppTab.EXAM -> ExamSelectionScreen(viewModel = viewModel)
                                     AppTab.SPACED_REPETITION -> SpacedRepetitionScreen(viewModel = viewModel)
                                     AppTab.SAVED_EXAMS -> SavedExamsScreen(viewModel = viewModel)
@@ -176,15 +183,17 @@ fun MainBottomNavigationBar(currentTab: AppTab, isEnglish: Boolean, onTabSelecte
             .height(84.dp)
             .background(NavBackground)
             .border(1.dp, Slate800)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
         NavItem(if (isEnglish) "Home" else "الرئيسية", "🏠", currentTab == AppTab.DASHBOARD) { onTabSelected(AppTab.DASHBOARD) }
+        NavItem(if (isEnglish) "Concepts" else "المفاهيم", "💡", currentTab == AppTab.CONCEPTS) { onTabSelected(AppTab.CONCEPTS) }
         NavItem(if (isEnglish) "Exams" else "الاختبارات", "📝", currentTab == AppTab.EXAM) { onTabSelected(AppTab.EXAM) }
-        NavItem(if (isEnglish) "SRS" else "التكرار الذكي", "🔄", currentTab == AppTab.SPACED_REPETITION) { onTabSelected(AppTab.SPACED_REPETITION) }
+        NavItem(if (isEnglish) "SRS" else "التكرار", "🔄", currentTab == AppTab.SPACED_REPETITION) { onTabSelected(AppTab.SPACED_REPETITION) }
         NavItem(if (isEnglish) "Archive" else "الأرشيف", "📁", currentTab == AppTab.SAVED_EXAMS) { onTabSelected(AppTab.SAVED_EXAMS) }
         NavItem(if (isEnglish) "Reports" else "التقارير", "📊", currentTab == AppTab.ANALYTICS) { onTabSelected(AppTab.ANALYTICS) }
+        NavItem(if (isEnglish) "Mock" else "مقابلة", "🤖", currentTab == AppTab.MOCK_INTERVIEW) { onTabSelected(AppTab.MOCK_INTERVIEW) }
     }
 }
 
@@ -425,6 +434,18 @@ fun DashboardScreen(viewModel: InterviewViewModel) {
             ) {
                 viewModel.startExam("Power")
             }
+            
+            TechnicalCategoryCard(
+                categoryName = if (viewModel.isEnglish) "IT Infrastructure" else "البنية التحتية لتكنولوجيا المعلومات",
+                iconBadge = "🖥️",
+                successRate = analytics.overallReadiness, // Re-use overall or add it to analytics. 
+                description = if (viewModel.isEnglish) "Servers, Virtualization, Linux, Storage and Data Centers." else "السيرفرات، الانظمة الوهمية، أنظمة تشغيل لينكس ومراكز البيانات.",
+                colorAccent = Emerald400,
+                onGenerateAiClick = { viewModel.generateAiExamForCategory("IT INFRASTRUCTURE") },
+                isAiGenerating = viewModel.isGeneratingCategoryAiExam == "IT INFRASTRUCTURE"
+            ) {
+                viewModel.startExam("IT INFRASTRUCTURE")
+            }
         }
         
         Spacer(modifier = Modifier.height(20.dp))
@@ -476,168 +497,7 @@ fun DashboardScreen(viewModel: InterviewViewModel) {
             }
         }
         
-        Spacer(modifier = Modifier.height(24.dp))
-        DashboardDynamicTip(analytics = analytics)
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // 📖 Interactive Telecom Glossary & Dictionary section
-        Text(
-            text = if (viewModel.isEnglish) "Interactive Telecom Engineering Dictionary" else "القاموس والقاموس التفاعلي لمصطلحات المصرية للاتصالات 📖",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            color = Slate200,
-            modifier = Modifier.padding(bottom = 6.dp, start = 4.dp)
-        )
-        Text(
-            text = if (viewModel.isEnglish) 
-                "Search and add core definitions directly to your Spaced Repetition (SRS) review decks." 
-                else "ابحث عن المصطلحات المعيارية للشركة وقم بمزامنتها تلقائيًا لحفظها في كروت المراجعة والتكرار الذكي.",
-            fontSize = 11.sp,
-            color = Slate400,
-            modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
-        )
-        
-        var glossarySearchQuery by remember { mutableStateOf("") }
-        val glossaryList = listOf(
-            GlossaryItem("GPON", "جي بون", "تقنية شبكات بصرية سلبية تعتمد على مقسمات ضوئية بدون تغذية طاقة كهربائية لتوزيع الإنترنت عبر الفايبر للمنازل.", "Gigabit Passive Optical Network", "Fiber"),
-            GlossaryItem("OTDR", "أوتدير", "جهاز لمراقبة سلامة كابلات الألياف الضوئية، تحديد نسبة الفقد والانكسار وتحديد القطوع.", "Optical Time Domain Reflectometer", "Fiber"),
-            GlossaryItem("OLT", "أو إل تي", "الجهاز الرئيسي النشط في سنترال الشركة لإدارة وتوجيه إشارة الفايبر لجميع المشتركين.", "Optical Line Terminal", "Fiber"),
-            GlossaryItem("ONT", "أو إن تي", "المودم النهائي في منزل المشترك لاستقبال سرعات وموجات الضوء والإنترنت.", "Optical Network Terminal", "Fiber"),
-            GlossaryItem("OSPF", "أوسبف", "بروتوكول توجيه ديناميكي داخلي يوزع الترافيك على السنترالات بالاعتماد على حالة الخط.", "Open Shortest Path First", "CCNA"),
-            GlossaryItem("VLSM", "فيلسم", "طريقة حسابية لتقسيم الشبكات متغيرة الأطوال لتوفير الآيبيات بدقة دون هدر.", "Variable Length Subnet Masking", "CCNA"),
-            GlossaryItem("Rectifier", "ريكتاير", "جهاز يقوم بتحويل تيار كابينة الـ MSAN المتردد AC لتيار مستمر DC وتغذية المولد والبطاريات.", "AC/DC Power Converter", "Power"),
-            GlossaryItem("ATS", "إيه تي إس", "المنسق التلقائي للتحويل الفوري للكهراباء الاحتياطية ومولد السولار عند فصل التيار العمومي.", "Automatic Transfer Switch", "Power"),
-            GlossaryItem("VRLA Cells", "بطاريات صمامية", "بطاريات الرصاص الحمضية المغلقة لمنع التسرب، لتأمين طاقة السنترالات لساعات متواصلة.", "Valve Regulated Lead-Acid Batteries", "Power"),
-            GlossaryItem("Fusion Splice", "لحام بالصهر", "وصل كوابل الفايبر حرارياً بآلة اللحام لتقليل نسبة الفقد الضوئي من الإشارة لأقل من 0.05 ديسيبل.", "Thermal Core Splicer", "Fiber")
-        )
-        
-        val filteredGlossary = glossaryList.filter {
-            it.term.contains(glossarySearchQuery, ignoreCase = true) || 
-            it.termAr.contains(glossarySearchQuery) || 
-            it.descAr.contains(glossarySearchQuery)
-        }
-        
-        // Search Input Field
-        TextField(
-            value = glossarySearchQuery,
-            onValueChange = { glossarySearchQuery = it },
-            placeholder = { 
-                Text(
-                    text = if (viewModel.isEnglish) "Search terms GPON, OSPF, Rectifier..." else "ابحث عن GPON, OSPF, ريكتاير...",
-                    fontSize = 12.sp,
-                    color = Slate500
-                )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .border(1.dp, Slate800, RoundedCornerShape(12.dp)),
-            singleLine = true,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = SurfaceDark,
-                unfocusedContainerColor = SurfaceDark,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
-            )
-        )
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (filteredGlossary.isEmpty()) {
-                Text(
-                    text = if (viewModel.isEnglish) "No matching terms found" else "لم يتم العثور على مصطلحات مطابقة",
-                    color = Slate500,
-                    fontSize = 11.sp,
-                    modifier = Modifier.padding(vertical = 12.dp)
-                )
-            } else {
-                filteredGlossary.take(4).forEach { item ->
-                    val itemBg = when (item.category) {
-                        "Fiber" -> Indigo500.copy(alpha = 0.05f)
-                        "CCNA" -> Cyan500.copy(alpha = 0.05f)
-                        else -> Orange500.copy(alpha = 0.05f)
-                    }
-                    val itemBorder = when (item.category) {
-                        "Fiber" -> Indigo555Accent()
-                        "CCNA" -> Cyan500.copy(alpha = 0.15f)
-                        else -> Orange500.copy(alpha = 0.15f)
-                    }
-                    val itemTitleColor = when (item.category) {
-                        "Fiber" -> Indigo300
-                        "CCNA" -> Cyan400
-                        else -> Orange400
-                    }
-                    
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(itemBg)
-                            .border(1.dp, itemBorder, RoundedCornerShape(12.dp))
-                            .padding(12.dp)
-                    ) {
-                        Column {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = item.term,
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = itemTitleColor
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text(
-                                        text = "(${item.termAr})",
-                                        fontSize = 11.sp,
-                                        color = Slate400
-                                    )
-                                }
-                                
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(itemTitleColor.copy(alpha = 0.15f))
-                                        .clickable { 
-                                            viewModel.addGlossaryTermToSrs(
-                                                item.termAr, 
-                                                item.term, 
-                                                item.descAr, 
-                                                item.category
-                                            )
-                                        }
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                                ) {
-                                    Text(
-                                        text = if (viewModel.isEnglish) "+ Add to SRS" else "+ مكننة SRS الكرت",
-                                        fontSize = 9.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = itemTitleColor
-                                    )
-                                }
-                            }
-                            
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = if (viewModel.isEnglish) item.descEn else item.descAr,
-                                fontSize = 11.sp,
-                                color = Slate300,
-                                lineHeight = 15.sp
-                            )
-                        }
-                    }
-                }
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(32.dp))
+
     }
 
     if (showFormulaSheet) {
@@ -1180,57 +1040,107 @@ fun ExamSelectionScreen(viewModel: InterviewViewModel) {
         )
         
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            CategoryOptionCard(
-                modifier = Modifier.weight(1f),
-                title = "محور الألياف",
-                desc = "GPON, OTDR & Loss",
-                badge = "📡",
-                bgGradient = listOf(Indigo600, Indigo600.copy(alpha = 0.7f))
-            ) {
-                viewModel.startExam("Fiber")
+            Column(modifier = Modifier.weight(1f)) {
+                CategoryOptionCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = "محور الألياف",
+                    desc = "GPON, OTDR & Loss",
+                    badge = "📡",
+                    bgGradient = listOf(Indigo600, Indigo600.copy(alpha = 0.7f))
+                ) {
+                    viewModel.startExam("Fiber")
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+                Button(
+                    onClick = { viewModel.startTimedQuiz("Fiber") },
+                    colors = ButtonDefaults.buttonColors(containerColor = SurfaceDark),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth().height(36.dp).border(0.8.dp, Indigo500, RoundedCornerShape(10.dp)),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text(text = "⏱️ اختبار مؤقت دقيق", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Cyan400)
+                }
             }
-            CategoryOptionCard(
-                modifier = Modifier.weight(1f),
-                title = "محور الشبكات",
-                desc = "OSPF, NAT & IPs",
-                badge = "🌐",
-                bgGradient = listOf(Cyan500, Cyan500.copy(alpha = 0.7f))
-            ) {
-                viewModel.startExam("CCNA")
+            
+            Column(modifier = Modifier.weight(1f)) {
+                CategoryOptionCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = "محور الشبكات",
+                    desc = "OSPF, NAT & IPs",
+                    badge = "🌐",
+                    bgGradient = listOf(Cyan500, Cyan500.copy(alpha = 0.7f))
+                ) {
+                    viewModel.startExam("CCNA")
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+                Button(
+                    onClick = { viewModel.startTimedQuiz("CCNA") },
+                    colors = ButtonDefaults.buttonColors(containerColor = SurfaceDark),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth().height(36.dp).border(0.8.dp, Cyan400, RoundedCornerShape(10.dp)),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text(text = "⏱️ اختبار مؤقت دقيق", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Cyan400)
+                }
             }
         }
         
         Spacer(modifier = Modifier.height(12.dp))
         
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            CategoryOptionCard(
-                modifier = Modifier.weight(1f),
-                title = "محور القوى",
-                desc = "Rectifiers, ATS & Ground",
-                badge = "⚡",
-                bgGradient = listOf(Orange500, Orange500.copy(alpha = 0.7f))
-            ) {
-                viewModel.startExam("Power")
+            Column(modifier = Modifier.weight(1f)) {
+                CategoryOptionCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = "محور القوى",
+                    desc = "Rectifiers, ATS & Ground",
+                    badge = "⚡",
+                    bgGradient = listOf(Orange500, Orange500.copy(alpha = 0.7f))
+                ) {
+                    viewModel.startExam("Power")
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+                Button(
+                    onClick = { viewModel.startTimedQuiz("Power") },
+                    colors = ButtonDefaults.buttonColors(containerColor = SurfaceDark),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth().height(36.dp).border(0.8.dp, Orange400, RoundedCornerShape(10.dp)),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text(text = "⏱️ اختبار مؤقت دقيق", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Orange300)
+                }
             }
             
-            // Helpful instructions card
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(140.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(SurfaceDark)
-                    .border(1.dp, Slate800, RoundedCornerShape(16.dp))
-                    .padding(16.dp)
-            ) {
-                Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxSize()) {
-                    Text(text = "💡 معلومات", fontSize = 11.sp, color = Orange400, fontWeight = FontWeight.Bold)
-                    Text(
-                        text = "المقابلات الفعلية تسألك في الثلاثة بنسب متساوية لتحديد شموليتك الهندسية.",
-                        fontSize = 10.sp,
-                        color = Slate400,
-                        lineHeight = 14.sp
-                    )
+            Column(modifier = Modifier.weight(1f)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(SurfaceDark)
+                        .border(1.dp, Slate800, RoundedCornerShape(16.dp))
+                        .padding(16.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxSize()) {
+                        Text(text = "💡 معلومات", fontSize = 11.sp, color = Orange400, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "المقابلات الفعلية تسألك في الثلاثة بنسب متساوية لتحديد شموليتك الهندسية.",
+                            fontSize = 10.sp,
+                            color = Slate400,
+                            lineHeight = 14.sp
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(36.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(SurfaceDark.copy(alpha = 0.5f))
+                        .border(1.dp, Slate800, RoundedCornerShape(10.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = "🛡️ معايير المصرية للاتصالات", fontSize = 9.sp, color = Slate400, fontWeight = FontWeight.Medium)
                 }
             }
         }
@@ -1709,6 +1619,9 @@ fun SpacedRepetitionScreen(viewModel: InterviewViewModel) {
                             color = Slate100,
                             lineHeight = 24.sp
                         )
+                        
+                        // Show beautiful diagram in SRS card if applicable
+                        TechnicalDiagram(diagramType = currentQuestion.diagramType, isEnglish = viewModel.isEnglish)
                         
                         Spacer(modifier = Modifier.height(24.dp))
                         
@@ -2215,6 +2128,25 @@ fun ActiveExamScreen(exam: Exam, viewModel: InterviewViewModel) {
                 }
             }
         }
+
+        // ⏱️ Global Countdown Timer for Timed Quiz Mode
+        LaunchedEffect(viewModel.isTimedQuizMode, exam.isCompleted) {
+            if (viewModel.isTimedQuizMode && !exam.isCompleted) {
+                while (viewModel.examTimeRemainingSeconds > 0 && !exam.isCompleted) {
+                    kotlinx.coroutines.delay(1000L)
+                    if (viewModel.examTimeRemainingSeconds > 0) {
+                        viewModel.examTimeRemainingSeconds--
+                    }
+                    if (viewModel.examTimeRemainingSeconds <= 15 && viewModel.examTimeRemainingSeconds > 0 && viewModel.isSoundEnabled) {
+                        // Warning chime
+                        AudioSynthesizer.playTone(listOf(600f), 45, volume = 0.22f)
+                    }
+                }
+                if (viewModel.examTimeRemainingSeconds == 0 && !exam.isCompleted) {
+                    viewModel.autoSubmitTimedQuiz()
+                }
+            }
+        }
         
         if (currentEq != null) {
             val localizedText = currentEq.question.getLocalizedText(viewModel.isEnglish)
@@ -2282,6 +2214,42 @@ fun ActiveExamScreen(exam: Exam, viewModel: InterviewViewModel) {
                     )
                 }
                 
+                if (viewModel.isTimedQuizMode && !exam.isCompleted) {
+                    val minutes = viewModel.examTimeRemainingSeconds / 60
+                    val seconds = viewModel.examTimeRemainingSeconds % 60
+                    val timeFormatted = String.format("%02d:%02d", minutes, seconds)
+                    
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (viewModel.examTimeRemainingSeconds <= 30) Orange500.copy(alpha = 0.15f) else SurfaceDark)
+                            .border(1.dp, if (viewModel.examTimeRemainingSeconds <= 30) Orange400 else Indigo500.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(text = "⏱️", fontSize = 16.sp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (viewModel.isEnglish) "Timed Quiz Timer" else "مؤقت الاختبار التنافسي",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (viewModel.examTimeRemainingSeconds <= 30) Orange300 else Color.White
+                            )
+                        }
+                        
+                        Text(
+                            text = timeFormatted,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (viewModel.examTimeRemainingSeconds <= 30) Orange400 else Cyan400
+                        )
+                    }
+                }
+                
                 if (viewModel.isStressModeEnabled && !feedbackShown) {
                     Row(
                         modifier = Modifier
@@ -2336,6 +2304,9 @@ fun ActiveExamScreen(exam: Exam, viewModel: InterviewViewModel) {
                         lineHeight = 22.sp
                     )
                 }
+                
+                // Show beautiful illustrative schematic diagram if requested by index
+                TechnicalDiagram(diagramType = currentEq.question.diagramType, isEnglish = viewModel.isEnglish)
                 
                 Spacer(modifier = Modifier.height(20.dp))
                 
@@ -2452,6 +2423,58 @@ fun ActiveExamScreen(exam: Exam, viewModel: InterviewViewModel) {
                                 color = Slate300,
                                 lineHeight = 16.sp
                             )
+                            
+                            Spacer(modifier = Modifier.height(8.dp))
+                            // 🤖 Ask AI feature for this specific question
+                            var localAiExplanation by remember { mutableStateOf("") }
+                            var isLocalAiLoading by remember { mutableStateOf(false) }
+                            val compScope = rememberCoroutineScope()
+
+                            if (localAiExplanation.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Box(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(SurfaceDark).padding(12.dp)) {
+                                    Text(
+                                        text = localAiExplanation,
+                                        fontSize = 11.sp,
+                                        color = Color.White,
+                                        lineHeight = 16.sp
+                                    )
+                                }
+                            } else {
+                                Button(
+                                    onClick = { 
+                                        isLocalAiLoading = true
+                                        compScope.launch {
+                                            try {
+                                                val prompt = "قم بشرح هذا السؤال التقني وإجابته ببساطة وبطريقة تلائم معايير المصرية للاتصالات: \nالسؤال: ${currentEq.question.text} \nالإجابة: ${currentEq.question.options[currentEq.question.correctIndex]}"
+                                                localAiExplanation = com.example.data.GeminiClient.explainConcept(prompt, currentEq.question.category)
+                                            } catch (e: Exception) {
+                                                localAiExplanation = "تعذر الاتصال بالذكاء الاصطناعي."
+                                            } finally {
+                                                isLocalAiLoading = false
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier.height(30.dp),
+                                    enabled = !isLocalAiLoading,
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Indigo500.copy(alpha=0.2f))
+                                ) {
+                                    if (isLocalAiLoading) {
+                                        CircularProgressIndicator(color = Cyan400, strokeWidth = 2.dp, modifier = Modifier.size(12.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                    } else {
+                                        Text(text = "🤖", fontSize = 12.sp)
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                    }
+                                    Text(
+                                        text = if (viewModel.isEnglish) "Ask AI to clarify this" else "اسأل الذكاء الاصطناعي للتوضيح الإضافي",
+                                        fontSize = 9.sp,
+                                        color = Cyan400,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
                         }
                     }
                     
@@ -2988,7 +3011,7 @@ fun FormulaCategoryCard(title: String, formulas: List<FormulaItem>) {
                             text = formula.expression,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Emerald455(),
+                            color = Cyan400,
                             fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                         )
                     }
@@ -3019,227 +3042,215 @@ data class GlossaryItem(
 fun MockInterviewScreen(viewModel: InterviewViewModel) {
     val currentIdx = viewModel.currentMockIndex
     val totalQs = viewModel.activeMockQuestions.size
-    val activePair = viewModel.activeMockQuestions.getOrNull(currentIdx)
+    val activeQuestion = viewModel.activeMockQuestions.getOrNull(currentIdx)
     val isEnglish = viewModel.isEnglish
-    
     val scrollState = rememberScrollState()
-    
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(horizontal = 20.dp)
-    ) {
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // Header
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+
+    if (viewModel.showMockSessionSummary) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
         ) {
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Header
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { viewModel.navigateTo(AppTab.DASHBOARD) }) {
-                    Text(text = "➔", color = Cyan400, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                }
                 Text(
-                    text = if (isEnglish) "AI Mock Board" else "لجنة محبي السنترالات بالـ AI 🎙️",
-                    fontSize = 16.sp,
+                    text = if (isEnglish) "Session Performance Report" else "تقرير جودة الأداء النهائي للجنة 📜",
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
+                
+                IconButton(onClick = { viewModel.navigateTo(AppTab.DASHBOARD) }) {
+                    Text(text = "✕", color = Slate400, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
             }
             
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Orange500.copy(alpha = 0.15f))
-                    .padding(horizontal = 10.dp, vertical = 5.dp)
-            ) {
-                Text(
-                    text = if (isEnglish) "Question ${currentIdx + 1} of $totalQs" else "السؤال ${currentIdx + 1} من $totalQs",
-                    fontSize = 11.sp,
-                    color = Orange400,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(18.dp))
-        
-        if (activePair != null) {
-            val questionText = if (isEnglish) activePair.second else activePair.first
+            Spacer(modifier = Modifier.height(18.dp))
             
-            // Question prompt
+            // Overall Score Card
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(SurfaceDark)
-                    .border(1.6.dp, Slate800, RoundedCornerShape(16.dp))
-                    .padding(20.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Brush.linearGradient(listOf(Indigo600, Cyan500)))
+                    .padding(24.dp)
             ) {
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(text = "🗣️", fontSize = 22.sp)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = if (isEnglish) "Oral Question Promoted by Board Editor:" else "السؤال الشفهي المطروح من لجنة السنترال:",
-                                fontSize = 11.sp,
-                                color = Slate400,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        
-                        IconButton(
-                            onClick = { viewModel.ttsSpeaker?.invoke(questionText, isEnglish) },
-                            modifier = Modifier
-                                .size(34.dp)
-                                .clip(CircleShape)
-                                .background(Cyan400.copy(alpha = 0.15f))
-                        ) {
-                            Text("🔊", fontSize = 14.sp)
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(10.dp))
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = questionText,
-                        fontSize = 14.sp,
+                        text = if (isEnglish) "OVERALL SUITABILITY SCORE" else "معدل الملاءمة الهندسية الكلي",
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        lineHeight = 22.sp
+                        color = Indigo100
                     )
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Interactive Input
-            Text(
-                text = if (isEnglish) "Describe your answers in technical depth:" else "اكتب إجابتك الهندسية التفصيلية هنا بالتفصيل الميكانيكي:",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = Slate300,
-                modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
-            )
-            
-            TextField(
-                value = viewModel.mockUserAnswer,
-                onValueChange = { viewModel.mockUserAnswer = it },
-                placeholder = {
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = if (isEnglish) 
-                            "Include real coordinates, terms, voltages, attenuations, protocols..." 
-                            else "اذكر الفتحات، الفولتيات، القيم الاسمية، البروتوكولات والمعادلات ذات الصلة...",
-                        fontSize = 11.sp,
-                        color = Slate500
+                        text = "${viewModel.sessionAverageScore}%",
+                        fontSize = 48.sp,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White
                     )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .border(1.dp, Slate800, RoundedCornerShape(16.dp)),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = SurfaceDark,
-                    unfocusedContainerColor = SurfaceDark,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Record Button
-                Button(
-                    onClick = { viewModel.speechToTextTrigger?.invoke() },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Indigo500.copy(alpha = 0.2f)),
-                    shape = RoundedCornerShape(10.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("🎙️", fontSize = 16.sp)
-                        Text(
-                            text = if (isEnglish) "Record Answer (Speech)" else "إملاء صوتي شفهي للمقابلة",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-                }
-
-                // Clear Button
-                Button(
-                    onClick = { viewModel.mockUserAnswer = "" },
-                    colors = ButtonDefaults.buttonColors(containerColor = SurfaceDark),
-                    shape = RoundedCornerShape(10.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-                    modifier = Modifier.border(1.dp, Slate800, RoundedCornerShape(10.dp))
-                ) {
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = if (isEnglish) "Clear" else "مسح",
-                        fontSize = 11.sp,
-                        color = Slate300
+                        text = if (viewModel.sessionAverageScore >= 85) {
+                            if (isEnglish) "Senior Engineer (Highly Recommended)" else "معتمد كمهندس أول (موثق بالتسليم الميداني)"
+                        } else if (viewModel.sessionAverageScore >= 70) {
+                            if (isEnglish) "Competent Field Lead (Approved)" else "مقبول فني متوسط (مع مراعاة التوصيات)"
+                        } else {
+                            if (isEnglish) "Review Required" else "بحاجة لمراجعة القوانين وأطلس الاتصالات"
+                        },
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     )
                 }
             }
             
-            viewModel.mockInterviewError?.let { err ->
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = err, color = Color.Red, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-            }
+            Spacer(modifier = Modifier.height(20.dp))
             
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Action button
-            if (viewModel.isEvaluatingMockAnswer) {
+            if (viewModel.isGeneratingSessionReport) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Slate800),
+                        .height(200.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            color = Cyan400,
-                            strokeWidth = 2.dp
-                        )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        CircularProgressIndicator(color = Cyan400)
                         Text(
-                            text = if (isEnglish) "AI Board evaluating in depth..." else "الذكاء الاصطناعي يحلل الجوانب الهندسية...",
-                            fontSize = 12.sp,
-                            color = Slate300,
-                            fontWeight = FontWeight.Bold
+                            text = if (isEnglish) "AI is auditing response history based on Telecom Egypt standards..." else "الذكاء الاصطناعي يحلل درجات التقرير طبقاً لمعايير المصرية للاتصالات...",
+                            fontSize = 11.sp,
+                            color = Slate400,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 24.dp)
                         )
                     }
                 }
             } else {
+                // Display feedback
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(SurfaceDark)
+                        .border(1.dp, Slate800, RoundedCornerShape(16.dp))
+                        .padding(20.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Text(
+                            text = if (isEnglish) "📋 AUDIT FEEDBACK & REPORT DETAIL" else "📋 تفاصيل تقرير تقييم الجلسة المجمع",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Cyan400
+                        )
+                        Divider(color = Slate800, thickness = 0.8.dp)
+                        
+                        Text(
+                            text = viewModel.sessionReportFeedback,
+                            fontSize = 12.sp,
+                            color = Slate200,
+                            lineHeight = 18.sp
+                        )
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                Text(
+                    text = if (isEnglish) "Questions History Review" else "مراجعة تفصيلية للأسئلة والأجوبة السابقة",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Slate300,
+                    modifier = Modifier.padding(start = 4.dp, bottom = 10.dp)
+                )
+                
+                viewModel.mockSessionHistory.forEachIndexed { index, item ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(SurfaceDark)
+                            .border(0.8.dp, Slate800, RoundedCornerShape(12.dp))
+                            .padding(14.dp)
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = if (isEnglish) "Question #${index + 1}" else "السؤال #${index + 1}",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Slate400
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(if (item.evaluation.score >= 70) Emerald500.copy(alpha = 0.2f) else Orange500.copy(alpha = 0.2f))
+                                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                                ) {
+                                    Text(
+                                        text = "${item.evaluation.score}%",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (item.evaluation.score >= 70) Emerald400 else Orange400
+                                    )
+                                }
+                            }
+                            
+                            Text(
+                                text = if (isEnglish) item.questionEn else item.questionAr,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            
+                            Divider(color = Slate800.copy(alpha = 0.5f), thickness = 0.6.dp)
+                            
+                            Text(
+                                text = if (isEnglish) "Your Answer:" else "إجابتك المقدمة:",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Slate400
+                            )
+                            Text(
+                                text = item.userAnswer,
+                                fontSize = 11.sp,
+                                color = Slate300,
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                            )
+                            
+                            Divider(color = Slate800.copy(alpha = 0.5f), thickness = 0.6.dp)
+                            
+                            Text(
+                                text = if (isEnglish) "Standard Model Answer Reference:" else "المرجع الفني للجواب النموذجي:",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Cyan400
+                            )
+                            Text(
+                                text = if (isEnglish) item.evaluation.modelAnswerEn else item.evaluation.modelAnswerAr,
+                                fontSize = 11.sp,
+                                color = Slate300
+                            )
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
                 Button(
-                    onClick = { viewModel.submitMockAnswer() },
+                    onClick = { viewModel.navigateTo(AppTab.DASHBOARD) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
@@ -3247,138 +3258,371 @@ fun MockInterviewScreen(viewModel: InterviewViewModel) {
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
-                        text = if (isEnglish) "Submit Technical Answer  ➔" else "إرسال الإجابة للمراجعة والتقييم ⚡",
+                        text = if (isEnglish) "Return to Dashboard" else "العودة للوحة القيادة الفنية ➔",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(40.dp))
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(horizontal = 20.dp)
+        ) {
+            Spacer(modifier = Modifier.height(24.dp))
             
-            // Render evaluation outputs
-            viewModel.mockEvaluationResult?.let { result ->
-                val ratingString = when {
-                    result.score >= 85 -> if (isEnglish) "Excellent (WE Certified)" else "ممتاز معتمد (مستوى مهندس أول)"
-                    result.score >= 70 -> if (isEnglish) "Competent (Good Field Prep)" else "مقبول فني في السنترال"
-                    else -> if (isEnglish) "Needs Practice (Review Glossary)" else "بحاجة لمزيد من المذاكرة والمصطلحات"
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    IconButton(onClick = { viewModel.navigateTo(AppTab.DASHBOARD) }) {
+                        Text(text = "➔", color = Cyan400, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Text(
+                        text = if (isEnglish) "AI Mock Board" else "لجنة محبي السنترالات بالـ AI 🎙️",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
                 }
-                val feedbackText = if (isEnglish) {
-                    "Analysis: ${result.analysisEn}\n\nTip: ${result.tipsEn}"
-                } else {
-                    "التحليل الهندسي: ${result.analysisAr}\n\nنصيحة اللجنة: ${result.tipsAr}"
-                }
-                val modelAnswerText = if (isEnglish) result.modelAnswerEn else result.modelAnswerAr
-
-                Spacer(modifier = Modifier.height(24.dp))
                 
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                        .background(if (result.score >= 70) Emerald500.copy(alpha = 0.08f) else Orange500.copy(alpha = 0.08f))
-                        .border(
-                            width = 1.3.dp,
-                            color = if (result.score >= 70) Emerald400 else Orange400,
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                        .padding(18.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Orange500.copy(alpha = 0.15f))
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = if (isEnglish) "Question ${currentIdx + 1} of $totalQs" else "السؤال ${currentIdx + 1} من $totalQs",
+                        fontSize = 11.sp,
+                        color = Orange400,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(18.dp))
+            
+            if (activeQuestion != null) {
+                val questionText = activeQuestion.getLocalizedText(isEnglish)
+                
+                // Question prompt
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(SurfaceDark)
+                        .border(1.6.dp, Slate800, RoundedCornerShape(16.dp))
+                        .padding(20.dp)
+                ) {
+                    Column {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = if (isEnglish) "Mock Board Evaluation Report:" else "تقرير تقييم المهندسين من اللجنة:",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Box(
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(text = "🗣️", fontSize = 22.sp)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = if (isEnglish) "Oral Question Promoted by Board Editor:" else "السؤال الشفهي المطروح من لجنة السنترال:",
+                                    fontSize = 11.sp,
+                                    color = Slate400,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            
+                            IconButton(
+                                onClick = { viewModel.ttsSpeaker?.invoke(questionText, isEnglish) },
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (result.score >= 70) Emerald500 else Orange500)
-                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                                    .size(34.dp)
+                                    .clip(CircleShape)
+                                    .background(Cyan400.copy(alpha = 0.15f))
                             ) {
-                                Text(
-                                    text = "${result.score}%",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = Color.White
-                                )
+                                Text("🔊", fontSize = 14.sp)
                             }
                         }
-                        
-                        Divider(color = Slate800, thickness = 0.8.dp)
-                        
-                        // Rating level
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(text = "📢", fontSize = 16.sp)
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = if (isEnglish) "Rating Level: $ratingString" else "درجة التقييم: $ratingString",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (result.score >= 70) Emerald400 else Orange400
-                            )
-                        }
-                        
-                        // Technical analysis Feedback
+                        Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = feedbackText,
-                            fontSize = 11.sp,
-                            color = Slate200,
-                            lineHeight = 16.sp
+                            text = questionText,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            lineHeight = 22.sp
                         )
-                        
-                        // Golden Standard Model Answer
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(BackgroundDark)
-                                .padding(12.dp)
-                        ) {
-                            Column {
-                                Text(
-                                    text = if (isEnglish) "🏆 Golden Standard Model Answer:" else "🏆 الجواب المعياري المعتمد لدى لجان التعيين:",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Cyan400
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = modelAnswerText,
-                                    fontSize = 11.sp,
-                                    color = Slate300,
-                                    lineHeight = 16.sp
-                                )
-                            }
-                        }
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 
-                // Button to jump forward
-                Button(
-                    onClick = { viewModel.nextMockQuestion() },
+                // Interactive Input
+                Text(
+                    text = if (isEnglish) "Describe your answers in technical depth:" else "اكتب إجابتك الهندسية التفصيلية هنا بالتفصيل الميكانيكي:",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Slate300,
+                    modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
+                )
+                
+                TextField(
+                    value = viewModel.mockUserAnswer,
+                    onValueChange = { viewModel.mockUserAnswer = it },
+                    placeholder = {
+                        Text(
+                            text = if (isEnglish) 
+                                "Include real coordinates, terms, voltages, attenuations, protocols..." 
+                                else "اذكر الفتحات، الفولتيات، القيم الاسمية، البروتوكولات والمعادلات ذات الصلة...",
+                            fontSize = 11.sp,
+                            color = Slate500
+                        )
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = if (currentIdx == totalQs - 1) Cyan500 else Emerald500),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = if (currentIdx == totalQs - 1) {
-                            if (isEnglish) "Complete Mock & Finish" else "إنهاء محاكي المقابلات بنجاح 🎉"
-                        } else {
-                            if (isEnglish) "Next Interview Question ➔" else "الانتقال للسؤال التالي باللجنة ➔"
-                        },
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        .height(120.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(1.dp, Slate800, RoundedCornerShape(16.dp)),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = SurfaceDark,
+                        unfocusedContainerColor = SurfaceDark,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
                     )
+                )
+ 
+                Spacer(modifier = Modifier.height(8.dp))
+ 
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Record Button
+                    Button(
+                        onClick = { viewModel.speechToTextTrigger?.invoke() },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = Indigo500.copy(alpha = 0.2f)),
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("🎙️", fontSize = 16.sp)
+                            Text(
+                                text = if (isEnglish) "Record Answer (Speech)" else "إملاء صوتي شفهي للمقابلة",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    }
+ 
+                    // Clear Button
+                    Button(
+                        onClick = { viewModel.mockUserAnswer = "" },
+                        colors = ButtonDefaults.buttonColors(containerColor = SurfaceDark),
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                        modifier = Modifier.border(1.dp, Slate800, RoundedCornerShape(10.dp))
+                    ) {
+                        Text(
+                            text = if (isEnglish) "Clear" else "مسح",
+                            fontSize = 11.sp,
+                            color = Slate300
+                        )
+                    }
+                }
+                
+                viewModel.mockInterviewError?.let { err ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = err, color = Color.Red, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Action button
+                if (viewModel.isEvaluatingMockAnswer) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Slate800),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                color = Cyan400,
+                                strokeWidth = 2.dp
+                            )
+                            Text(
+                                text = if (isEnglish) "AI Board evaluating in depth..." else "الذكاء الاصطناعي يحلل الجوانب الهندسية...",
+                                fontSize = 12.sp,
+                                color = Slate300,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                } else {
+                    Button(
+                        onClick = { viewModel.submitMockAnswer() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Indigo600),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = if (isEnglish) "Submit Technical Answer  ➔" else "إرسال الإجابة للمراجعة والتقييم ⚡",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+                
+                // Render evaluation outputs
+                viewModel.mockEvaluationResult?.let { result ->
+                    val ratingString = when {
+                        result.score >= 85 -> if (isEnglish) "Excellent (WE Certified)" else "ممتاز معتمد (مستوى مهندس أول)"
+                        result.score >= 70 -> if (isEnglish) "Competent (Good Field Prep)" else "مقبول فني في السنترال"
+                        else -> if (isEnglish) "Needs Practice (Review Glossary)" else "بحاجة لمزيد من المذاكرة والمصطلحات"
+                    }
+                    val feedbackText = if (isEnglish) {
+                        "Analysis: ${result.analysisEn}\n\nTip: ${result.tipsEn}"
+                    } else {
+                        "التحليل الهندسي: ${result.analysisAr}\n\nنصيحة اللجنة: ${result.tipsAr}"
+                    }
+                    val modelAnswerText = if (isEnglish) result.modelAnswerEn else result.modelAnswerAr
+ 
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(if (result.score >= 70) Emerald500.copy(alpha = 0.08f) else Orange500.copy(alpha = 0.08f))
+                            .border(
+                                width = 1.3.dp,
+                                color = if (result.score >= 70) Emerald400 else Orange400,
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                            .padding(18.dp)
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = if (isEnglish) "Mock Board Evaluation Report:" else "تقرير تقييم المهندسين من اللجنة:",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(if (result.score >= 70) Emerald500 else Orange500)
+                                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                                ) {
+                                    Text(
+                                        text = "${result.score}%",
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                            
+                            Divider(color = Slate800, thickness = 0.8.dp)
+                            
+                            // Rating level
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(text = "📢", fontSize = 16.sp)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = if (isEnglish) "Rating Level: $ratingString" else "درجة التقييم: $ratingString",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (result.score >= 70) Emerald400 else Orange400
+                                )
+                            }
+                            
+                            // Technical analysis Feedback
+                            Text(
+                                text = feedbackText,
+                                fontSize = 11.sp,
+                                color = Slate200,
+                                lineHeight = 16.sp
+                            )
+                            
+                            // Golden Standard Model Answer
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(BackgroundDark)
+                                    .padding(12.dp)
+                            ) {
+                                Column {
+                                    Text(
+                                        text = if (isEnglish) "🏆 Golden Standard Model Answer:" else "🏆 الجواب المعياري المعتمد لدى لجان التعيين:",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Cyan400
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = modelAnswerText,
+                                        fontSize = 11.sp,
+                                        color = Slate300,
+                                        lineHeight = 16.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(18.dp))
+                    
+                    // Button to jump forward
+                    Button(
+                        onClick = { viewModel.nextMockQuestion() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = if (currentIdx == totalQs - 1) Cyan500 else Emerald500),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = if (currentIdx == totalQs - 1) {
+                                if (isEnglish) "Complete Mock & Finish" else "إنهاء محاكي المقابلات بنجاح 🎉"
+                            } else {
+                                if (isEnglish) "Next Interview Question ➔" else "الانتقال للسؤال التالي باللجنة ➔"
+                            },
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
                 }
             }
         }
@@ -4004,4 +4248,1099 @@ fun DailyTelecomChallengeSheet(viewModel: InterviewViewModel, onDismiss: () -> U
             }
         }
     )
+}
+
+@Composable
+fun TechnicalDiagram(diagramType: String?, isEnglish: Boolean) {
+    if (diagramType.isNullOrEmpty()) return
+
+    Spacer(modifier = Modifier.height(12.dp))
+    
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .border(1.dp, Slate800, RoundedCornerShape(16.dp)),
+        colors = CardDefaults.cardColors(containerColor = SurfaceDark.copy(alpha = 0.5f))
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = if (isEnglish) "📊 Technical Diagram Helper" else "📊 مخطط توضيحي هندسي للمفهوم",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = Cyan400,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+                    .background(BackgroundDark, RoundedCornerShape(12.dp))
+                    .border(1.dp, Slate800, RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val gridWidth = 40.dp.toPx()
+                    val gridHeight = 40.dp.toPx()
+                    for (x in 0 until (size.width / gridWidth).toInt() + 1) {
+                        drawLine(
+                            color = Slate800.copy(alpha = 0.25f),
+                            start = androidx.compose.ui.geometry.Offset(x * gridWidth, 0f),
+                            end = androidx.compose.ui.geometry.Offset(x * gridWidth, size.height),
+                            strokeWidth = 1f
+                        )
+                    }
+                    for (y in 0 until (size.height / gridHeight).toInt() + 1) {
+                        drawLine(
+                            color = Slate800.copy(alpha = 0.25f),
+                            start = androidx.compose.ui.geometry.Offset(0f, y * gridHeight),
+                            end = androidx.compose.ui.geometry.Offset(size.width, y * gridHeight),
+                            strokeWidth = 1f
+                        )
+                    }
+
+                    when (diagramType) {
+                        "ohms_law" -> {
+                            val cx = size.width / 2f
+                            val cy = size.height / 2f - 5f
+                            val radius = 50.dp.toPx()
+                            
+                            drawCircle(
+                                color = Indigo500.copy(alpha = 0.15f),
+                                radius = radius,
+                                center = androidx.compose.ui.geometry.Offset(cx, cy)
+                            )
+                            drawCircle(
+                                color = Indigo500,
+                                radius = radius,
+                                center = androidx.compose.ui.geometry.Offset(cx, cy),
+                                style = Stroke(width = 3.dp.toPx())
+                            )
+                            drawLine(
+                                color = Indigo500,
+                                start = androidx.compose.ui.geometry.Offset(cx - radius, cy),
+                                end = androidx.compose.ui.geometry.Offset(cx + radius, cy),
+                                strokeWidth = 3.dp.toPx()
+                            )
+                            drawLine(
+                                color = Indigo500,
+                                start = androidx.compose.ui.geometry.Offset(cx, cy),
+                                end = androidx.compose.ui.geometry.Offset(cx, cy + radius),
+                                strokeWidth = 3.dp.toPx()
+                            )
+                        }
+                        "transformer" -> {
+                            val w = size.width
+                            val h = size.height
+                            
+                            drawRoundRect(
+                                color = Slate800,
+                                topLeft = androidx.compose.ui.geometry.Offset(w * 0.3f, h * 0.15f),
+                                size = androidx.compose.ui.geometry.Size(w * 0.4f, h * 0.65f),
+                                cornerRadius = androidx.compose.ui.geometry.CornerRadius(10f, 10f),
+                                style = Stroke(width = 12.dp.toPx())
+                            )
+                            
+                            val primaryX = w * 0.3f
+                            val secondaryX = w * 0.7f
+                            val startY = h * 0.25f
+                            val endY = h * 0.7f
+                            
+                            for (i in 0..4) {
+                                val cy1 = startY + i * (endY - startY) / 4f
+                                drawArc(
+                                    color = Cyan400,
+                                    startAngle = -90f,
+                                    sweepAngle = 180f,
+                                    useCenter = false,
+                                    topLeft = androidx.compose.ui.geometry.Offset(primaryX - 12.dp.toPx(), cy1 - 8.dp.toPx()),
+                                    size = androidx.compose.ui.geometry.Size(24.dp.toPx(), 16.dp.toPx()),
+                                    style = Stroke(width = 3.dp.toPx())
+                                )
+                                drawArc(
+                                    color = Orange400,
+                                    startAngle = 90f,
+                                    sweepAngle = 180f,
+                                    useCenter = false,
+                                    topLeft = androidx.compose.ui.geometry.Offset(secondaryX - 12.dp.toPx(), cy1 - 8.dp.toPx()),
+                                    size = androidx.compose.ui.geometry.Size(24.dp.toPx(), 16.dp.toPx()),
+                                    style = Stroke(width = 3.dp.toPx())
+                                )
+                            }
+                        }
+                        "ats_switch" -> {
+                            val w = size.width
+                            val h = size.height
+                            
+                            drawCircle(
+                                color = Slate500,
+                                radius = 20f,
+                                center = androidx.compose.ui.geometry.Offset(w * 0.25f, h * 0.4f)
+                            )
+                            drawCircle(
+                                color = Orange400,
+                                radius = 20f,
+                                center = androidx.compose.ui.geometry.Offset(w * 0.75f, h * 0.4f)
+                            )
+                            drawCircle(
+                                color = Cyan400,
+                                radius = 25f,
+                                center = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.75f)
+                            )
+                            
+                            drawLine(
+                                color = Slate500,
+                                start = androidx.compose.ui.geometry.Offset(w * 0.25f, h * 0.4f),
+                                end = androidx.compose.ui.geometry.Offset(w * 0.42f, h * 0.45f),
+                                strokeWidth = 2.dp.toPx()
+                            )
+                            drawLine(
+                                color = Orange400.copy(alpha = 0.5f),
+                                start = androidx.compose.ui.geometry.Offset(w * 0.75f, h * 0.4f),
+                                end = androidx.compose.ui.geometry.Offset(w * 0.58f, h * 0.45f),
+                                strokeWidth = 2.dp.toPx()
+                            )
+                            drawLine(
+                                color = Cyan400,
+                                start = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.75f),
+                                end = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.55f),
+                                strokeWidth = 3.dp.toPx()
+                            )
+                            drawLine(
+                                color = Emerald400,
+                                start = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.55f),
+                                end = androidx.compose.ui.geometry.Offset(w * 0.41f, h * 0.44f),
+                                strokeWidth = 4.dp.toPx()
+                            )
+                        }
+                        "rectifier" -> {
+                            val w = size.width
+                            val h = size.height
+                            
+                            drawCircle(
+                                color = Color.Gray,
+                                radius = 18f,
+                                center = androidx.compose.ui.geometry.Offset(w * 0.15f, h * 0.4f)
+                            )
+                            drawArc(
+                                color = Color.White,
+                                startAngle = 0f,
+                                sweepAngle = 180f,
+                                useCenter = false,
+                                topLeft = androidx.compose.ui.geometry.Offset(w * 0.15f - 8f, h * 0.4f - 6f),
+                                size = androidx.compose.ui.geometry.Size(16f, 10f),
+                                style = Stroke(width = 2f)
+                            )
+                            drawLine(
+                                color = Slate500,
+                                start = androidx.compose.ui.geometry.Offset(w * 0.15f + 22f, h * 0.4f),
+                                end = androidx.compose.ui.geometry.Offset(w * 0.32f, h * 0.4f),
+                                strokeWidth = 2f
+                            )
+                            drawRoundRect(
+                                color = Indigo500.copy(alpha = 0.2f),
+                                topLeft = Offset(w * 0.35f, h * 0.2f),
+                                size = Size(w * 0.3f, h * 0.5f),
+                                cornerRadius = CornerRadius(8f, 8f)
+                            )
+                            drawRoundRect(
+                                color = Indigo500,
+                                topLeft = Offset(w * 0.35f, h * 0.2f),
+                                size = Size(w * 0.3f, h * 0.5f),
+                                cornerRadius = CornerRadius(8f, 8f),
+                                style = Stroke(width = 2.dp.toPx())
+                            )
+                            drawLine(
+                                color = Indigo300,
+                                start = Offset(w * 0.42f, h * 0.45f),
+                                end = Offset(w * 0.58f, h * 0.45f),
+                                strokeWidth = 3f
+                            )
+                            drawLine(
+                                color = Orange400,
+                                start = Offset(w * 0.65f + 5f, h * 0.4f),
+                                end = Offset(w * 0.85f, h * 0.4f),
+                                strokeWidth = 3f
+                            )
+                            drawLine(
+                                color = Orange400,
+                                start = Offset(w * 0.75f, h * 0.4f),
+                                end = Offset(w * 0.75f, h * 0.7f),
+                                strokeWidth = 2f
+                            )
+                            drawRoundRect(
+                                color = Emerald500.copy(alpha = 0.2f),
+                                topLeft = Offset(w * 0.68f, h * 0.72f),
+                                size = Size(w * 0.15f, h * 0.18f),
+                                cornerRadius = CornerRadius(4f, 4f)
+                            )
+                        }
+                        "battery_series" -> {
+                            val w = size.width
+                            val h = size.height
+                            val startX = w * 0.15f
+                            val bWidth = w * 0.14f
+                            val spacing = w * 0.05f
+                            
+                            for (i in 0..3) {
+                                val bx = startX + i * (bWidth + spacing)
+                                val by = h * 0.35f
+                                
+                                drawRoundRect(
+                                    color = Emerald500.copy(alpha = 0.15f),
+                                    topLeft = Offset(bx, by),
+                                    size = Size(bWidth, h * 0.35f),
+                                    cornerRadius = CornerRadius(6f, 6f)
+                                )
+                                drawRoundRect(
+                                    color = Emerald400,
+                                    topLeft = Offset(bx, by),
+                                    size = Size(bWidth, h * 0.35f),
+                                    cornerRadius = CornerRadius(6f, 6f),
+                                    style = Stroke(width = 2.dp.toPx())
+                                )
+                                drawRect(
+                                    color = Emerald400,
+                                    topLeft = Offset(bx + bWidth/2f - 6f, by - 6f),
+                                    size = Size(12f, 6f)
+                                )
+                                if (i < 3) {
+                                    val nextBx = startX + (i + 1) * (bWidth + spacing)
+                                    drawLine(
+                                        color = Color.White,
+                                        start = Offset(bx + bWidth, by + h * 0.18f),
+                                        end = Offset(nextBx, by + h * 0.18f),
+                                        strokeWidth = 2f
+                                    )
+                                }
+                            }
+                        }
+                        "gpon_split" -> {
+                            val w = size.width
+                            val h = size.height
+                            
+                            drawRoundRect(
+                                color = Indigo600.copy(alpha = 0.3f),
+                                topLeft = Offset(w * 0.08f, h * 0.32f),
+                                size = Size(w * 0.18f, h * 0.36f),
+                                cornerRadius = CornerRadius(6f, 6f)
+                            )
+                            drawRoundRect(
+                                color = Indigo300,
+                                topLeft = Offset(w * 0.08f, h * 0.32f),
+                                size = Size(w * 0.18f, h * 0.36f),
+                                cornerRadius = CornerRadius(6f, 6f),
+                                style = Stroke(width = 2.dp.toPx())
+                            )
+                            drawLine(
+                                color = Cyan400,
+                                start = androidx.compose.ui.geometry.Offset(w * 0.26f, h * 0.5f),
+                                end = androidx.compose.ui.geometry.Offset(w * 0.48f, h * 0.5f),
+                                strokeWidth = 3.dp.toPx()
+                            )
+                            
+                            val path = androidx.compose.ui.graphics.Path().apply {
+                                moveTo(w * 0.48f, h * 0.4f)
+                                lineTo(w * 0.58f, h * 0.5f)
+                                lineTo(w * 0.48f, h * 0.6f)
+                                close()
+                            }
+                            drawPath(
+                                path = path,
+                                color = Purple500
+                            )
+                            
+                            val branchDestinations = listOf(h * 0.22f, h * 0.5f, h * 0.78f)
+                            branchDestinations.forEach { destY ->
+                                drawLine(
+                                    color = Cyan400,
+                                    start = androidx.compose.ui.geometry.Offset(w * 0.58f, h * 0.5f),
+                                    end = androidx.compose.ui.geometry.Offset(w * 0.78f, destY),
+                                    strokeWidth = 1.8f.dp.toPx()
+                                )
+                                drawCircle(
+                                    color = Emerald500,
+                                    radius = 12f,
+                                    center = androidx.compose.ui.geometry.Offset(w * 0.78f + 12f, destY)
+                                )
+                            }
+                        }
+                        "otdr_curve" -> {
+                            val w = size.width
+                            val h = size.height
+                            
+                            val curvePath = androidx.compose.ui.graphics.Path().apply {
+                                moveTo(w * 0.05f, h * 0.85f)
+                                lineTo(w * 0.12f, h * 0.15f)
+                                lineTo(w * 0.16f, h * 0.5f)
+                                lineTo(w * 0.45f, h * 0.65f)
+                                lineTo(w * 0.49f, h * 0.35f)
+                                lineTo(w * 0.53f, h * 0.72f)
+                                lineTo(w * 0.82f, h * 0.83f)
+                                lineTo(w * 0.82f, h * 0.9f)
+                                lineTo(w * 0.95f, h * 0.9f)
+                            }
+                            drawPath(
+                                path = curvePath,
+                                color = Orange400,
+                                style = Stroke(width = 3.dp.toPx())
+                            )
+                        }
+                        "ospf_topology" -> {
+                            val w = size.width
+                            val h = size.height
+                            
+                            val nodeA = androidx.compose.ui.geometry.Offset(w * 0.2f, h * 0.35f)
+                            val nodeB = androidx.compose.ui.geometry.Offset(w * 0.8f, h * 0.35f)
+                            val nodeC = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.75f)
+                            
+                            drawLine(color = Indigo400, start = nodeA, end = nodeB, strokeWidth = 2.dp.toPx())
+                            drawLine(color = Indigo400, start = nodeB, end = nodeC, strokeWidth = 2.dp.toPx())
+                            drawLine(color = Indigo400, start = nodeC, end = nodeA, strokeWidth = 2.dp.toPx())
+                            
+                            drawCircle(color = SurfaceDark, radius = 28f, center = nodeA)
+                            drawCircle(color = Slate200, radius = 28f, center = nodeA, style = Stroke(width = 2.dp.toPx()))
+                            
+                            drawCircle(color = SurfaceDark, radius = 28f, center = nodeB)
+                            drawCircle(color = Slate200, radius = 28f, center = nodeB, style = Stroke(width = 2.dp.toPx()))
+                            
+                            drawCircle(color = SurfaceDark, radius = 28f, center = nodeC)
+                            drawCircle(color = Slate200, radius = 28f, center = nodeC, style = Stroke(width = 2.dp.toPx()))
+                        }
+                    }
+                }
+
+                when (diagramType) {
+                    "ohms_law" -> {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Text(
+                                text = "V",
+                                color = Orange400,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp,
+                                modifier = Modifier.align(Alignment.TopCenter).padding(top = 34.dp)
+                            )
+                            Text(
+                                text = "I",
+                                color = Cyan400,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp,
+                                modifier = Modifier.align(Alignment.BottomStart).padding(start = 120.dp, bottom = 54.dp)
+                            )
+                            Text(
+                                text = "R",
+                                color = Purple500,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp,
+                                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 120.dp, bottom = 54.dp)
+                            )
+                            Text(
+                                text = "V = I × R",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp,
+                                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp)
+                            )
+                        }
+                    }
+                    "transformer" -> {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Text(
+                                text = if (isEnglish) "Primary Side\nN1 (V1)" else "الملف الابتدائي\nN1 (V1 AC)",
+                                color = Cyan400,
+                                fontSize = 10.sp,
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp)
+                            )
+                            Text(
+                                text = "V1 / V2 = N1 / N2",
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 10.dp)
+                            )
+                            Text(
+                                text = if (isEnglish) "Secondary Side\nN2 (V2)" else "الملف الثانوي\nN2 (V2 AC)",
+                                color = Orange400,
+                                fontSize = 10.sp,
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp)
+                            )
+                        }
+                    }
+                    "ats_switch" -> {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Text(
+                                text = if (isEnglish) "Commercial Grid" else "طاقة البلدية AC",
+                                color = Slate300,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.TopStart).padding(start = 32.dp, top = 20.dp)
+                            )
+                            Text(
+                                text = if (isEnglish) "Generator FEED" else "المولد الاحتياطي",
+                                color = Orange300,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.TopEnd).padding(end = 32.dp, top = 20.dp)
+                            )
+                            Text(
+                                text = if (isEnglish) "ATS Switch (Relay Active)" else "مفتاح التحويل ATS - مغذّي الخط",
+                                color = Emerald400,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.TopCenter).padding(top = 10.dp)
+                            )
+                            Text(
+                                text = if (isEnglish) "Telecom Loads (-48V rect.)" else "أحمال الاتصالات وفلترة الجهد",
+                                color = Cyan400,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp)
+                            )
+                        }
+                    }
+                    "rectifier" -> {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Text(
+                                text = "AC Input",
+                                color = Color.Gray,
+                                fontSize = 9.sp,
+                                modifier = Modifier.align(Alignment.TopStart).padding(start = 16.dp, top = 22.dp)
+                            )
+                            Text(
+                                text = if (isEnglish) "Rectifier System\n(AC ➔ DC Converter)" else "جهاز الموحد Rectifier\n(توليد جهد مستمر)",
+                                color = Indigo300,
+                                fontSize = 10.sp,
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.Center).padding(bottom = 10.dp)
+                            )
+                            Text(
+                                text = "Outputs: -48V DC",
+                                color = Orange400,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.TopEnd).padding(end = 12.dp, top = 24.dp)
+                            )
+                            Text(
+                                text = if (isEnglish) "Float Backup Batteries (24x 2V)" else "البطاريات الاحتياطية (تغذية عائمة)",
+                                color = Emerald400,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 8.dp)
+                            )
+                        }
+                    }
+                    "battery_series" -> {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Text(
+                                text = if (isEnglish) "Series Accumulative Voltage (24 Cells connected)" else "تجميع الجهد المتتالي بالتسلسل (24 خلية × 2 فولت)",
+                                color = Emerald400,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.TopCenter).padding(top = 12.dp)
+                            )
+                            Text(
+                                text = "V_total = 2 + 2 + 2 + ... = 48V DC",
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp)
+                            )
+                        }
+                    }
+                    "gpon_split" -> {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Text(
+                                text = "OLT (Central)",
+                                color = Indigo300,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.CenterStart).padding(start = 20.dp, bottom = 42.dp)
+                            )
+                            Text(
+                                text = if (isEnglish) "1:N Passive Splitter" else "مقسم سلبي 1:N Splitter",
+                                color = Purple500,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.TopCenter).padding(top = 22.dp)
+                            )
+                            Text(
+                                text = "ONT (Client)",
+                                color = Emerald400,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 12.dp, bottom = 42.dp)
+                            )
+                        }
+                    }
+                    "otdr_curve" -> {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Text(
+                                text = if (isEnglish) "OTDR Attenuation Trace Curve (dB vs Distance)" else "منحنى الوهن وجدول الأحداث (النبضة الضوئية والانعكاس)",
+                                color = Orange400,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.TopCenter).padding(top = 10.dp)
+                            )
+                            Text(
+                                text = if (isEnglish) "Initial Connect" else "موصل السنترال",
+                                color = Slate400,
+                                fontSize = 8.sp,
+                                modifier = Modifier.align(Alignment.CenterStart).padding(start = 32.dp, bottom = 32.dp)
+                            )
+                            Text(
+                                text = if (isEnglish) "Fault/Reflective" else "حدث انعكاسي/كسر",
+                                color = Orange300,
+                                fontSize = 8.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.Center).padding(bottom = 32.dp)
+                            )
+                            Text(
+                                text = if (isEnglish) "Noise Floor" else "مستوى الضجيج والنهاية",
+                                color = Slate500,
+                                fontSize = 8.sp,
+                                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 42.dp, bottom = 22.dp)
+                            )
+                        }
+                    }
+                    "ospf_topology" -> {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Text(
+                                text = "Router A",
+                                color = Slate100,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.TopStart).padding(start = 58.dp, top = 16.dp)
+                            )
+                            Text(
+                                text = "Router B",
+                                color = Slate100,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.TopEnd).padding(end = 58.dp, top = 16.dp)
+                            )
+                            Text(
+                                text = "Router C",
+                                color = Slate100,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp)
+                            )
+                            Text(
+                                text = "OSPF Shortest Path First",
+                                color = Indigo300,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 2.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- Basic Concepts with AI Search & Explanation Screen ---
+@Composable
+fun ConceptsScreen(viewModel: InterviewViewModel) {
+    val isEng = viewModel.isEnglish
+    val selectedConcept = viewModel.selectedConcept
+    
+    var selectedCategoryFilter by remember { mutableStateOf("All") }
+    
+    val filteredConcepts = viewModel.getFilteredConcepts().filter {
+        selectedCategoryFilter == "All" || it.category == selectedCategoryFilter
+    }
+
+    if (selectedConcept != null) {
+        ConceptDetailView(
+            concept = selectedConcept,
+            viewModel = viewModel,
+            onBack = { viewModel.selectConcept(null) }
+        )
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp)
+        ) {
+            Spacer(modifier = Modifier.height(28.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = if (isEng) "Core Concepts & AI Guide" else "المفاهيم الأساسية وشرح الـ AI 💡",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = if (isEng) "Master fundamental telecom systems & prepare for interviews" 
+                               else "اشحن رصيدك المعرفي بأدق الأسس الهندسية والتقنية المطلوبة بالامتحان",
+                        fontSize = 12.sp,
+                        color = Slate400,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                    )
+                }
+            }
+
+            // Search Bar
+            val searchVal = viewModel.searchConceptQuery
+            OutlinedTextField(
+                value = searchVal,
+                onValueChange = { viewModel.setConceptSearch(it) },
+                placeholder = {
+                    Text(
+                        text = if (isEng) "Search concepts, formulas, keywords..." else "ابحث عن مفهوم، قانون، أو مصطلح معين...",
+                        fontSize = 12.sp,
+                        color = Slate500
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                trailingIcon = {
+                    if (searchVal.isNotEmpty()) {
+                        Text(
+                            text = "✕",
+                            color = Slate300,
+                            modifier = Modifier
+                                .clickable { viewModel.setConceptSearch("") }
+                                .padding(8.dp)
+                        )
+                    } else {
+                        Text(text = "🔍", modifier = Modifier.padding(8.dp))
+                    }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Slate100,
+                    unfocusedTextColor = Slate200,
+                    focusedContainerColor = BackgroundDark,
+                    unfocusedContainerColor = BackgroundDark,
+                    focusedBorderColor = Indigo400,
+                    unfocusedBorderColor = Slate800
+                ),
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            // Category quick tags
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp)
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val listCats = listOf(
+                    "All" to (if (isEng) "All" else "الكل"),
+                    "Fiber" to (if (isEng) "Fiber" else "الفايبر"),
+                    "CCNA" to (if (isEng) "Networks" else "الشبكات CCNA"),
+                    "Power" to (if (isEng) "Power" else "الباور والقوى"),
+                    "IT INFRASTRUCTURE" to (if (isEng) "IT Infrastructure" else "البنية التحتية IT")
+                )
+                listCats.forEach { (catId, catLabel) ->
+                    val isSelected = selectedCategoryFilter == catId
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(if (isSelected) Indigo500 else Slate800)
+                            .clickable { selectedCategoryFilter = catId }
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = catLabel,
+                            color = if (isSelected) Color.White else Slate300,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (filteredConcepts.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
+                        Text(text = "🔎", fontSize = 48.sp)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = if (isEng) "No matching concepts found." else "لم نعثر على مفاهيم مطابقة لبحثك.",
+                            color = Slate300,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 24.dp)
+                ) {
+                    items(filteredConcepts) { concept ->
+                        ConceptCardItem(concept = concept, isEng = isEng) {
+                            viewModel.selectConcept(concept)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ConceptCardItem(concept: BasicConcept, isEng: Boolean, onClick: () -> Unit) {
+    val pillBg = when (concept.category) {
+        "Fiber" -> Color(0xFF4A148C) // Purple900
+        "CCNA" -> Indigo500
+        else -> Color(0xFFE65100) // Amber900
+    }
+    val pillLabel = when (concept.category) {
+        "Fiber" -> if (isEng) "Fiber" else "ألياف ضوئية"
+        "CCNA" -> if (isEng) "CCNA" else "شبكات"
+        else -> if (isEng) "Power" else "قوى وباور"
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B).copy(alpha = 0.5f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(pillBg)
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Text(text = pillLabel, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                }
+                Text(text = "💡", fontSize = 16.sp)
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = if (isEng) concept.titleEn else concept.titleAr,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = if (isEng) concept.summaryEn else concept.summaryAr,
+                fontSize = 12.sp,
+                color = Slate300,
+                lineHeight = 18.sp
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = if (isEng) "Study & Ask AI ➔" else "اقرأ المفهوم واسأل الذكاء الاصطناعي ➔",
+                    color = Indigo300,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ConceptDetailView(concept: BasicConcept, viewModel: InterviewViewModel, onBack: () -> Unit) {
+    val isEng = viewModel.isEnglish
+    val scrollState = rememberScrollState()
+    
+    // Technical loading phrases
+    val explanationLoadingPhrases = listOf(
+        if (isEng) "Analyzing core circuit standards..." else "جاري استعراض القوام الفنية من أرشيف السنترال...",
+        if (isEng) "Engaging Gemini telecom models..." else "جاري مواءمة خوارزمية Gemini مع لوائح المقابلات الفنية لشركة وي...",
+        if (isEng) "Drafting interview cheat-sheets..." else "جاري صياغة النصائح العملية والخدع البرمجية لتخطي السؤال بامتياز..."
+    )
+    var activeLoadingPhraseIndex by remember { mutableStateOf(0) }
+    
+    LaunchedEffect(viewModel.isExplainingConcept) {
+        if (viewModel.isExplainingConcept) {
+            activeLoadingPhraseIndex = 0
+            while (viewModel.isExplainingConcept) {
+                kotlinx.coroutines.delay(2000)
+                activeLoadingPhraseIndex = (activeLoadingPhraseIndex + 1) % explanationLoadingPhrases.size
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BackgroundDark)
+    ) {
+        // Simple Navigation Header
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF0F172A))
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "➔",
+                fontSize = 20.sp,
+                color = Color.White,
+                modifier = Modifier
+                    .clickable(onClick = onBack)
+                    .padding(8.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = if (isEng) "Concept Exploration" else "تصفح المفهوم الهرمي",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(20.dp)
+        ) {
+            // Category + Title
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (concept.category == "Fiber") Color(0xFF4A148C) else if (concept.category == "CCNA") Indigo500 else Color(0xFFE65100))
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    text = concept.category,
+                    color = Color.White,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = concept.titleAr,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            Text(
+                text = concept.titleEn,
+                fontSize = 14.sp,
+                color = Slate400,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            // Substantial Static local details
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B).copy(alpha = 0.5f))
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = if (isEng) "Summary Overview" else "شرح أساسي مبسط",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Indigo300
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = if (isEng) concept.detailedExplanationEn else concept.detailedExplanationAr,
+                        fontSize = 13.sp,
+                        color = Slate100,
+                        lineHeight = 20.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // If a diagram exists, present it in the center!
+            if (concept.diagramType != null) {
+                Text(
+                    text = if (isEng) "Technical Schematic" else "الرسم البياني للتوصيل والقوانين 📊",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFF0F172A))
+                ) {
+                    TechnicalDiagram(diagramType = concept.diagramType, isEnglish = isEng)
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+
+            // Gemini Interactive Section
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, Slate800, RoundedCornerShape(14.dp)),
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B).copy(alpha = 0.6f))
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (isEng) "AI Deep-Dive Explainer" else "الشرح الموسع بالذكاء الاصطناعي 🤖",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFFFD700) // Golden Accent
+                        )
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF1E1B4B))
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(text = "Gemini Flash", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = if (isEng) "Query Gemini to compile highly specialized Egyptian telecom interview questions, standards, and model responses for this concept."
+                               else "انقر لاستقصاء نموذج Gemini لتقديم إجابة نموذجية معدة خصيصاً لاجتياز المقابلة الفنية والأسئلة الحرجة بشركة وي (WE).",
+                        fontSize = 11.sp,
+                        color = Slate300,
+                        lineHeight = 16.sp
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    if (viewModel.isExplainingConcept) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            CircularProgressIndicator(color = Indigo400)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = explanationLoadingPhrases[activeLoadingPhraseIndex],
+                                fontSize = 11.sp,
+                                color = Slate300,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    } else if (viewModel.conceptAiExplanation.isEmpty()) {
+                        Button(
+                            onClick = { viewModel.fetchAiExplanationForSelectedConcept() },
+                            colors = ButtonDefaults.buttonColors(containerColor = Indigo500),
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Text(
+                                text = if (isEng) "⚡ Generate AI Explanation" else "⚡ استعراض شرح الذكاء الاصطناعي الفوري",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    } else {
+                        // We have the explanation rendered beautifully!
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Color(0xFF0F172A))
+                                .padding(12.dp)
+                        ) {
+                            Column {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = if (isEng) "Gemini Analysis Result:" else "تحليل الذكاء الاصطناعي والأسئلة المتوقعة:",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.LightGray
+                                    )
+                                    // Speak Button
+                                    Button(
+                                        onClick = { 
+                                            viewModel.ttsSpeaker?.invoke(viewModel.conceptAiExplanation, isEng)
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Slate800),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                        shape = RoundedCornerShape(6.dp),
+                                        modifier = Modifier.height(26.dp)
+                                    ) {
+                                        Text(text = "🔊 استمع للشرح الصوتي", fontSize = 10.sp, color = Color.White)
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = viewModel.conceptAiExplanation,
+                                    fontSize = 12.sp,
+                                    color = Slate100,
+                                    lineHeight = 18.sp
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Retry/Refresh Option
+                        Button(
+                            onClick = { viewModel.fetchAiExplanationForSelectedConcept() },
+                            colors = ButtonDefaults.buttonColors(containerColor = Slate800),
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Text(
+                                text = if (isEng) "↻ Regenerate Explanation" else "↻ تحديث الشرح وإعادة توليد النطاق",
+                                fontSize = 11.sp,
+                                color = Slate200
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

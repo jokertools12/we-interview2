@@ -718,13 +718,702 @@ object QuestionsData {
         )
     )
 
-    val allQuestions = fiberQuestions + ccnaQuestions + powerQuestions + glossaryQuestions
+
+    val additionalFiberQuestions = listOf(
+        Question(
+            id = "fib_ext_01",
+            text = "ما هي المكونات النشطة (Active) لشبكات FTTH التي يلزم توصيلها بتيار كهربائي دائم للعمل؟",
+            options = listOf("الـ OLT في السنترال والـ ONT عند العميل", "الـ Splitter المقسم البصري وخزانات التوزيع FDT", "كابلات التغذية Feeder وكابل كسر الفايبر Patch Cord", "صناديق التوزيع FAT وروزتا الحائط Faceplate"),
+            correctIndex = 0,
+            explanation = "الشبكة السلبية البصرية (PON) تعني أن كافة المكونات الممتدة بالشارع مثل Splitter و ODF و FDT هي سلبية (Passive) لا تستهلك أي طاقة كهربائية، بينما الأجهزة المنتهية الفعالة فقط هي النشطة (Active) وهي الـ OLT بالسنترال والـ ONT بمنزل العميل.",
+            category = "Fiber",
+            englishText = "What are the Active components in an FTTH network that require permanent electrical supply?",
+            englishOptions = listOf("The OLT at the Central Office and the ONT at the customer site", "The optical Splitter and fiber distribution cabinets (FDT)", "Feeder cables and the patching fiber connector (Patch Cord)", "Fiber access terminals (FAT) and wall-outlet faceplates"),
+            englishExplanation = "Passive Optical Networks (PON) utilize zero-power passive physical splitting infrastructure. Only the endpoints like the Central Office terminal (OLT) and the customer terminal (ONT) operate as active powered nodes.",
+            diagramType = "gpon_split"
+        ),
+        Question(
+            id = "fib_ext_02",
+            text = "كم عدد بطاقات ومنافذ الـ GPON النموذجية وقنوات التوجيه في محول الخطوط البصرية OLT؟",
+            options = listOf("تحتوي عادة على بطاقتي باور، وبطاقة إدارة، وبطاقة إيثرنت، بالإضافة لـ 16 بطاقة GPON بـ 4 أو 8 أو 16 منفذ لكل بطاقة", "منفذ واحد فقط يخرج لكافة المدن كبث عام غير مشفر", "بطاقة واحدة مشتركة مع كروك النحاس MSAN بدون تفرقة", "لوحتين طاقة تيار متردد AC بدون بطاريات احتياطية في السنترال"),
+            correctIndex = 0,
+            explanation = "شاسيه الـ OLT في السنترال يتكون من تكرار للباور لإغراض الحماية (2 Power Cards)، مع بطاقة إدارة وتحكم (Management Card)، وبطاقة ربط Uplink (Ethernet/Uplink Card)، ومجموعة بطاقات الـ GPON Cards التي تملك عادة حتى 16 منفذاً بوهن ضوئي يقسمه الموشور.",
+            category = "Fiber",
+            englishText = "What are the typical hardware modules inside an OLT (Optical Line Terminal)?",
+            englishOptions = listOf("2 Power Cards, 1 Management Controller, 1 Ethernet Uplink Card, and up to 16 GPON Cards with 4/8/16 ports each", "A single main broadcast port sending unencrypted voice directly", "A single controller board shared with legacy copper MSAN nodes", "Two unbuffered main AC power supplies without redundant cells"),
+            englishExplanation = "The core chassis of an OLT features high redundancy, employing dual power boards, central controller/uplink interfaces, and multiple GPON line cards holding dedicated optical ports for downstream clients.",
+            diagramType = "gpon_split"
+        ),
+        Question(
+            id = "fib_ext_03",
+            text = "عند فحص كائن فايبر مكسور باستخدام جهاز الـ OTDR، ماذا تمثل النقطة والقفزة العلوية الحادة متبوعة بهبوط حاد في الرسم البياني للنبضة؟",
+            options = listOf("تحدث بسبب انعكاس قوي (Reflectance Peak) عند الوصلات والموصلات متبوعة بالفقد الطبيعي والانحناء الكلي للكابل", "تشير لجهد تشغيل البطارية الاحتياطية في كابينة العميل", "تأكيد تام على سلامة الكابل بالكامل حتى السنترال الرئيسي", "تحويل تلقائي للإشارة من أحادية النمط إلى متعددة الأنماط"),
+            correctIndex = 0,
+            explanation = "القمم الحادة والارتفاعات في رسم الـ OTDR البياني تمثل انعكاسات قوية (Reflective Events) عند الكسر أو نهايات الموصلات (Connectors / Mech Splice). يتبعها هبوط مباشر يوضح الفقد (Insertion Loss) المتراكم على طول المسار الإجمالي.",
+            category = "Fiber",
+            englishText = "In an OTDR pulse chart, what does a sharp upward reflectivity spike followed by a drop represent?",
+            englishOptions = listOf("A reflective event (Reflectance Peak) at connections or cuts, followed by progressive signal attenuation", "The standby backup battery current status at the cabinet", "An absolute verification that the cable is flawless up to the CO", "An automatic optical translation from single-mode to multi-mode status"),
+            englishExplanation = "OTDR trace waveforms map physical cable characteristics. Highly reflective boundaries (like connectors, mechanical splices, or fiber cuts) produce reflection peaks. The subsequent vertical level shift reveals insertion loss.",
+            diagramType = "otdr_curve"
+        ),
+        Question(
+            id = "fib_ext_04",
+            text = "ما هي الفروقات التقنية في أبعاد وسرعات شبكات الفايبر أحادي النمط Single Mode مقارنة بـ Multimode؟",
+            options = listOf("يمتاز أحادي النمط بنواة ضيقة (9 ميكرون) ويصل لـ 80 كم بوهن ضئيل ومصدره الليزر، أما متعدد الأنماط فنواته أوسع (50-62.5 ميكرون) ومسافته قصيرة بحدود 2 كم ومصدره LED", "أحادي النمط نواته 125 ميكرون ويستخدم في التوصيلات المنزلية القصيرة والزوايا الضيقة للغاية", "متعدد الأنماط ينقل البيانات في اتجاه واحد فقط بالليزر وبوهن مستقر وعالي", "أحادي النمط دائم التشتت بالتشتت الميكروني وسعته تنتهي عند 100 ميجابت بالثانية"),
+            correctIndex = 0,
+            explanation = "كابل الألياف أحادي النمط (SMF) يملك نواة نحيلة (9 μm) تسمح بمرور مسار واحد ونمط ضوئي وحيد، فيلغي تشتت المسارات المتعددة ويدعم مسافات طويلة وبسرعات بالغة الارتفاع كالمستخدمة بـ OLT-WE بالليزر. بينما المتعدد الأنماط (MMF) نواته أوسع تشتت الطاقات بالمسافات الطويلة.",
+            category = "Fiber",
+            englishText = "What are the core differences between Single-Mode and Multi-Mode fiber cables?",
+            englishOptions = listOf("Single-mode has a 9-micron narrow core for up to 80km utilizing Laser; Multi-mode has a 50-62.5 micron wide core for up to 2km utilizing LED", "Single-mode has a 125-micron core and is exclusively designated for tight domestic home hookups", "Multi-mode directs light patterns in a single stream with laser transmitters", "Single-mode suffers severe scattering limit and is bounded at 100 Mbps bandwidth capacity"),
+            englishExplanation = "Single-Mode Fiber (SMF) features an ultra-thin 9-micron glass core designed for single laser ray travel, avoiding modal dispersion over spans up to 80km. Multi-Mode Fiber (MMF) has a thicker core inviting multiple light paths (LED rays) prone to attenuation.",
+            diagramType = "otdr_curve"
+        ),
+        Question(
+            id = "fib_ext_05",
+            text = "في نظام تحليل خطوط الـ DSL والـ ASSIA، ماذا يمثل مؤشر الـ Dispatch Score وما هي حدوده الآمنة؟",
+            options = listOf("درجة تقييم الاحتياج لزيارة فني (0-100)، كلما قلت كان الخط أفضل (أقل من 25 جيد جداً، بينما الأعلى يستدعي توجيه فني فوراً لتفحص الوصلات والقصر)", "فولتية التيار المستمر المترسب على خط الهاتف في كابينة الـ MSAN", "معدل سرعة شحن بطاريات القوى والباور الاحتياطية", "الزمن المستغرق لتحرير الـ IP من المودم محلياً"),
+            correctIndex = 0,
+            explanation = "يعطي الـ Dispatch Score في ASSIA مؤشراً إحصائياً دقيقاً عن حاجة الخط لصيانة فيزيائية. القراءات تحت الـ 25 تؤكد سلامة الخط وعدم احتياجه لفني صيانة (No Dispatch). القراءات المرتفعة تشير لضرر في الكابلات أو سوء اللحام بموقع العميل.",
+            category = "Fiber",
+            englishText = "What does the Dispatch Score in ASSIA represent, and what are its standard limits?",
+            englishOptions = listOf("A checklist score (0-100) recommending technician dispatch: lower is better (< 25 is healthy, higher demands physical repair)", "The direct DC bias voltage detected on the physical copper line at the MSAN", "The relative recharging rate of central energy backup cells", "The total connection delay required to lease a fresh DHCP address"),
+            englishExplanation = "The ASSIA Dispatch Score is an AI-driven index predicting line troubles. High scores warn of physical copper degradation (such as bad splices or bridging), calling for a task creation, whereas a low score (< 25) flags the port as stable.",
+            diagramType = "gpon_split"
+        )
+    )
+
+    val additionalCcnaQuestions = listOf(
+        Question(
+            id = "net_ext_01",
+            text = "ما هو عنوان الـ IP والـ Protocol المعياري المستخدم في بروتوكول APIPA (Automatic Private IP) عند فشل العثور على خادم الـ DHCP؟",
+            options = listOf("آي بي في المدى 169.254.0.0/16 لمنع حدوث تصادم وسقوط للشبكة الداخلية", "عنوان Loopback الفوري 127.0.0.1 لإعادة تشغيل الكرت", "عنوان الويب العام للشركة المصرية للاتصالات 192.168.1.1", "بروتوكول تحكم مجهول لتوزيع طاقة البنزين في السنترال"),
+            correctIndex = 0,
+            explanation = "عند تعطل خادم الـ DHCP في الروتر، يقوم نظام التشغيل تلقائياً بتعيين IP خاص مؤقت (APIPA) في النطاق 169.254.x.x بقناع /16، مما يتيح للأجهزة في الـ LAN التواصل المبدئي معاً محلياً وتفادي الـ IP Conflict.",
+            category = "CCNA",
+            englishText = "What is the IP address block assigned by APIPA (Automatic Private IP Addressing) upon DHCP discovery failure?",
+            englishOptions = listOf("An IP within the 169.254.0.0/16 range to prevent local network communication blackouts", "The absolute loopback IP 127.0.0.1 to reset client adapters", "The default gateway route IP 192.168.1.1 for Telecom Egypt DNS rules", "A background legacy protocol governing fuel pumps in central exchanges"),
+            englishExplanation = "When a host cannot find a DHCP server, APIPA dynamically assigns a non-routable link-local IP in the 169.254.0.0 to 169.254.255.255 range, allowing local nodes to map and talk to adjacent switch interfaces.",
+            diagramType = "ospf_topology"
+        ),
+        Question(
+            id = "net_ext_02",
+            text = "كيف يفرق بروتوكول الـ PAT (Port Address Translation) بين ترافيك الأجهزة المتعددة عند خروجها جميعاً بـ Public IP واحد للإنترنت؟",
+            options = listOf("عن طريق ربط كل اتصال داخلي برقم بورت (Port Number) فريد ومستقل في جدول التوجيه", "بإرسال برودكاست عام لكافة خطوط الـ OLT في نفس اللحظة", "بتقسيم الإشارة الضوئية بنوعيها الفايبر والنحاس بشكل ميكانيكي", "بتعديل عنوان الـ MAC الفيزيائي الثابت لدى كرت الشبكة"),
+            correctIndex = 0,
+            explanation = "بروتوكول PAT هو نوع من الـ Dynamic NAT يسمح لمئات الأجهزة بمشاركة عنوان IP خارجي عام واحد، ويفرق بين حركة الأجهزة وحزم الاستجابة عبر تخصيص وتخزين منفذ (Source Port ID) منفرد لكل جهاز في جدول الـ NAT Table.",
+            category = "CCNA",
+            englishText = "How does PAT (Port Address Translation) differentiate traffic streams from multiple local hosts sharing a single Public IP?",
+            englishOptions = listOf("By mapping each internal connection to a unique and distinct Port Number in the state table", "By broadcasting downstream packets to all GPON OLT optical splices simultaneously", "By splitting copper and fiber physical paths in mechanical routers", "By modifying the hardcoded static physical MAC address on the host internet card"),
+            englishExplanation = "PAT allows dynamic overloading by mapping multiple Private IP addresses to a single Public IP address. Each connection is tracked with a temporary dynamic Source Port value assigned within the NAT translation table.",
+            diagramType = "ospf_topology"
+        ),
+        Question(
+            id = "net_ext_03",
+            text = "في نموذج الـ OSI، في أي طبقة يعمل بروتوكول الـ TCP والتأكد من وصول البيانات بالكامل (Connection-oriented)؟",
+            options = listOf("الطبقة الرابعة: طبقة النقل (Transport Layer - Layer 4)", "الطبقة الثالثة: طبقة الشبكة (Network Layer)", "الطبقة السابعة: طبقة التطبيقات (Application Layer)", "الطبقة الأولى: الطبقة الفيزيقية (Physical Layer)"),
+            correctIndex = 0,
+            explanation = "يعمل بروتول TCP في الطبقة الرابعة (Transport Layer)، وهي المسؤولة عن نقل البيانات من الطرف إلى الطرف مع التحكم بالتدفق (Flow Control)، والتأكد من استلام الحزم بالكامل عبر الـ Acknowledgements وإعادة إرسال التالف.",
+            category = "CCNA",
+            englishText = "At which OSI Model layer does the connection-oriented TCP protocol operate to ensure reliable data delivery?",
+            englishOptions = listOf("Layer 4: Transport Layer", "Layer 3: Network Layer", "Layer 7: Application Layer", "Layer 1: Physical Layer"),
+            englishExplanation = "The Transport Layer (Layer 4) manages end-to-end data flow control and segmentation. Reliable protocol TCP verifies segment receipt using Acknowledgements, initiating retransmissions if packet drops are spotted.",
+            diagramType = "ospf_topology"
+        ),
+        Question(
+            id = "net_ext_04",
+            text = "عند تشغيل أمر NETSTAT -a في نظام التشغيل وويندوز، مسمى 'Established' المتكرر بكثرة لأجهزة مشبوهة ينذر بوجود ماذا؟",
+            options = listOf("احتمالية عالية لوجود برمجيات تجسس واختراق (Spyware) تتصل بخوادم خارجية غير مصرح بها", "إشارة واضحة لاستقرار كابلات الـ FTTH ومقاومة الأرضي الممتازة", "تحديث فوري لسرعات المودم وباقات العميل المشترك", "أمر تلقائي من الموزع لإفراغ مكثفات التيار المتردد"),
+            correctIndex = 0,
+            explanation = "حالة 'Established' في أمر netstat تؤكد وجود اتصال نشط وفروع ربط كاملة ومفتوحة بين جهازك وخادم آخر عبر منفذ اتصالات معين. تكرارها لعناوين غريبة بدون استخدام برامج تصفح ينذر بوجود اتصالات برمجيات تجسس خلفية (Spyware).",
+            category = "CCNA",
+            englishText = "Running NETSTAT -a in Windows CMD, what does a persistent 'Established' status toward suspicious IP links alert you of?",
+            englishOptions = listOf("A high likelihood of spyware or unauthorized background sessions communicating with remote servers", "An absolute verification of fiber drop cable stability and low earth impedance", "An automated update improving DSL modem downstream bandwidth", "A command routing signals to drain reactive current from central filters"),
+            englishExplanation = "The NETSTAT command maps open socket lines. Direct connections in the 'ESTABLISHED' state without user browsing tell of active processes, which could be malicious Trojans or spyware sending client credentials back home.",
+            diagramType = "ospf_topology"
+        ),
+        Question(
+            id = "net_ext_05",
+            text = "ما هو الدور الأساسي للمنطقة صفر (Area 0) في بروتوكول تسيير ومواءمة المسارات OSPF؟",
+            options = listOf(
+                "تعمل كمنطقة العمود الفقري (Backbone Area) التي يجب أن تتصل بها كافة المناطق لتمرير وتبادل بيانات التسيير",
+                "تقسيم كابلات الألياف الضوئية في كبائن الـ MSAN الخارجية",
+                "توليد خادم تلقائي لتوصيل وتوزيع عناوين الآي بي الخاصة APIPA",
+                "تنظيم سرعة استجابة المولد الاحتياطي والـ ATS بالسنترالات"
+            ),
+            correctIndex = 0,
+            explanation = "في بروتوكول OSPF، تعتبر المنطقة صفر (Area 0) هي العمود الفقري (Backbone Area) للشبكة التوجيهية بالكامل. يجب على جميع المناطق الأخرى (Non-backbone Areas) أن تتصل بها مادياً أو افتراضياً لتتمكن من تبادل معلومات المسارات (LSAs) وتفادي الحلقات التوجيهية (Routing Loops).",
+            category = "CCNA",
+            englishText = "What is the primary role of Area 0 (Backbone Area) in the OSPF routing protocol?",
+            englishOptions = listOf(
+                "It serves as the core Backbone Area through which all other non-backbone areas must connect to exchange routing updates",
+                "It manages physical optical fiber core divisions in outdoor MSAN cabinets",
+                "It automatically deploys unroutable link-local private APIPA IP pools",
+                "It regulates standby diesel engines and ATS relay reactions in telephone exchanges"
+            ),
+            englishExplanation = "In OSPF, Area 0 acts as the central Backbone Area. All non-zero areas must connect to Area 0 to route multi-area traffic and pass Link State Advertisements (LSAs), preventing routing loops across OSPF-enabled networks.",
+            diagramType = "ospf_topology"
+        ),
+        Question(
+            id = "net_ext_06",
+            text = "عند تقسيم شبكة باستخدام قناع شبكة فرعية 255.255.255.192 (المكافئ لـ CIDR /26)، كم عدد الأجهزة المتاحة للاستخدام (Usable Hosts) في كل شبكة فرعية؟",
+            options = listOf(
+                "62 جهازاً (حسب الصيغة الرياضية 2^6 - 2 = 62)",
+                "64 جهازاً (بدون اقتطاع وحذف حدي الشبكة والبث)",
+                "126 جهازاً (باعتبار تفريع شبكة الفئة B الثنائية)",
+                "30 جهازاً فقط من فئة الشبكات المتكاملة الصغيرة"
+            ),
+            correctIndex = 0,
+            explanation = "القناع 255.255.255.192 يترك 6 بت لعنوان المضيف (الـ Hosts bits) في البايت الأخير (32 - 26 = 6 بت). لحساب الأجهزة القابلة للاستخدام، نستخدم الصيغة 2^6 - 2، والتي تساوي 64 - 2 = 62 جهازاً، حيث يخصم العنوان الرئيسي للشبكة وعنوان البث العام (Broadcast Address).",
+            category = "CCNA",
+            englishText = "When dividing an IP range using the subnet mask 255.255.255.192 (/26 CIDR), how many usable hosts are available per subnet?",
+            englishOptions = listOf(
+                "62 hosts (calculated using the formula 2^6 - 2 = 62)",
+                "64 hosts (including the network and broadcast limits)",
+                "126 hosts (representing dynamic class-B network models)",
+                "30 hosts based on small subnet partitions"
+            ),
+            englishExplanation = "A /26 subnet boundaries leave 6 bits for hosts (32 - 26 = 6). The formula 2^h - 2 gives 2^6 - 2 = 64 - 2 = 62 usable IP hosts. The first address represents the Subnet boundary, and the last represents the Subnet Broadcast.",
+            diagramType = "ospf_topology"
+        ),
+        Question(
+            id = "net_ext_07",
+            text = "ما هو الفرق التشغيلي الأساسي بين جهاز المبدل (Switch) وجهاز الموجه (Router) في طبقات الـ OSI واتخاذ القرار؟",
+            options = listOf(
+                "يعمل المبدل في الطبقة الثانية (Data Link Layer) معتمداً على عناوين الـ MAC، في حين يعمل الموجه في الطبقة الثالثة (Network Layer) معتمداً على الـ IP والتوجيه بـ Routing Table",
+                "المبدل يغذي إشارة كوابل الفايبر الضوئية فقط، بينما الموجه يربط البطاريات بالطاقة المستمرة DC",
+                "المبدل ينظم عمل ممرات الديزل ومقاومات السنترالات، بينما الموجه مسؤول عن تصفية موجات الليزر",
+                "لا يوجد أي فرق تشغيلي بينهما ويقومان بذات الوظيفة بنفس كروت الشبكة والواجهات"
+            ),
+            correctIndex = 0,
+            explanation = "المبدل يعمل في Layer 2 (Data Link) ويستخدم جدول عناوين الـ MAC (MAC Table) لتوجيه البيانات داخل نفس الشبكة المحلية LAN. أما الموجه فيعمل في Layer 3 (Network) ويستخدم جدول التوجيه (Routing Table) المبني على عناوين الـ IP لتبادل وتوجيه البيانات بين شبكات مختلفة وبعيدة.",
+            category = "CCNA",
+            englishText = "What is the primary difference between a Network Switch and a Router in terms of OSI layers and decision tables?",
+            englishOptions = listOf(
+                "A Switch operates at Layer 2 (Data Link) using a MAC Address Table, while a Router operates at Layer 3 (Network) using an IP Routing Table",
+                "Switches drive laser light outputs whereas Routers manage backhaul -48V DC terminal currents",
+                "Switches balance diesel generator fuel pumps while Routers rectify incoming high voltage AC signals",
+                "There is no active difference; both execute the same functions and utilize identical physical interfaces"
+            ),
+            englishExplanation = "A Layer 2 Switch forwards frames within a local area network using hardware MAC address matching. A Layer 3 Router routes packets between distinct logical IP subnets by consulting its software routing lookup table.",
+            diagramType = "ospf_topology"
+        ),
+        Question(
+            id = "net_ext_08",
+            text = "ما هي الوظيفة الأساسية والجوهرية لبروتوكول الـ DNS (Domain Name System) في شبكات الإنترنت والسنترالات العامة؟",
+            options = listOf(
+                "تحويل أسماء النطاقات المقروءة بشرياً (مثل google.com) إلى عناوين الـ IP الرقمية المقابلة لتتمكن الأجهزة من تبادل الحزم",
+                "شحن البطاريات الرصاصية بالتيار المستمر المنخفض وعزل الـ Rectifier",
+                "قياس شدة الإشارة ونقاط الوهن للضوء داخل كوابين الألياف الضوئية",
+                "تنظيم وتبريد مراوح سحب الحرارة الداخلية لكبائن الـ MSAN الخارجية"
+            ),
+            correctIndex = 0,
+            explanation = "بروتوكول الـ DNS يعمل مثل دليل الهاتف للإنترنت； حيث يتلقى المدخلات النصية البشرية مثل 'telecom.eg' ويترجمها إلى عناوين IP رقمية (مثل 163.121.x.x) يستطيع المتصفح ونظام التوجيه تتبعها وتوجيه الحزم إليها مباشرة.",
+            category = "CCNA",
+            englishText = "What is the primary function of the Domain Name System (DNS) protocol in computer networks?",
+            englishOptions = listOf(
+                "Translating human-readable domain names (e.g., google.com) into numerical IP addresses to enable device routing and data exchanges",
+                "Charging the backup DC battery bank automatically from inverter outlets",
+                "Measuring light intensity levels and loss indices inside optical fiber cables",
+                "Balancing cabinet micro-fan speeds inside outdoor MSAN boxes to fight heat"
+            ),
+            englishExplanation = "DNS serves as the phonebook of the internet. It maps human-friendly URLs to IP addresses (like ipv4 or ipv6 targets), allowing network routers to locate hosts and fetch resources over UDP/TCP port 53.",
+            diagramType = "ospf_topology"
+        )
+    )
+
+    val additionalPowerQuestions = listOf(
+        Question(
+            id = "pwr_ext_01",
+            text = "ما هو التعبير الرياضي الصحيح لقانون أوم (Ohm's Law) لربط الجهد والجهد المغذي والمقاومة والتيار بالكبائن؟",
+            options = listOf("V = I × R (الجهد = التيار × المقاومة)", "I = V × R (التيار = الجهد × المقاومة)", "R = V × I (المقاومة = الجهد × التيار)", "V = I / R (الجهد = التيار / المقاومة)"),
+            correctIndex = 0,
+            explanation = "قانون أوم يربط العناصر الثلاثة للدائرة المستمرة والمترددة الأساسية: الجهد V بالفولت، التيار I بالأمبير، والمقاومة R بالأوم (V = I × R). يتميز به في تصميم خطوط التغذية وحساب مساحة مقاطع الكابلات بالسنترال لمنع انخفاض الفولت.",
+            category = "Power",
+            englishText = "What is the correct mathematical expression for Ohm's Law linking Voltage, Current, and Resistance?",
+            englishOptions = listOf("V = I * R (Voltage = Current * Resistance)", "I = V * R (Current = Voltage * Resistance)", "R = V * I (Resistance = Voltage * Current)", "V = I / R (Voltage = Current / Resistance)"),
+            englishExplanation = "Ohm's Law asserts that current is linear with electromotive force. Voltage equals current multiplied by resistance. Accurate Ohm's Law ratios protect layout cables from overload and unwanted voltage drops.",
+            diagramType = "ohms_law"
+        ),
+        Question(
+            id = "pwr_ext_02",
+            text = "ما هي العلاقة التحويلية لجهد ولفات المحول الكهربائي (Transformer Formula) عند رفع أو خفض الجهد؟",
+            options = listOf("V1 / V2 = N1 / N2 (تناسق طردي بين نسبة الجهد ونسبة عدد اللفات)", "V1 / V2 = N2 / N1 (تناسق عكسي تام لعدد الملفات)", "V1 × V2 = N1 × N2 (الضرب التعامدي للجهد الخارجي والداخلي)", "V1 + V2 = N1 + N2 (الجمع المباشر للجهد ولفائف المحاور)"),
+            correctIndex = 0,
+            explanation = "المحولات الكهربائية تعتمد على الحث المغناطيسي لرفع أو خفض الجهد المتردد AC، وصيغة النسبة المغذية هي V1/V2 = N1/N2. حيث V1 و N1 جهد وعدد لفات الملف الابتدائي، و V2 و N2 جهد وعدد لفات الملف الثانوي.",
+            category = "Power",
+            englishText = "What is the transformation ratio formula for voltage and winding turns in a single-phase Transformer?",
+            englishOptions = listOf("V1 / V2 = N1 / N2 (Voltage ratio proportional directly to winding turns)", "V1 / V2 = N2 / N1 (Voltage ratio proportional inversely to secondary turns)", "V1 * V2 = N1 * N2 (Cross-product multiplication of input potentials)", "V1 + V2 = N1 + N2 (Direct arithmetic addition of coils and voltage)"),
+            englishExplanation = "A transformer alters AC potential based on electromagnetic induction. The voltage ratio is directly proportional to its coil winding turns ratio, formulated cleanly as V1/V2 = N1/N2.",
+            diagramType = "transformer"
+        ),
+        Question(
+            id = "pwr_ext_03",
+            text = "ما هي وظيفة الـ Auto Transfer Switch (ATS) في السنترال الرئيسي للشركة وكبائن الاتصالات الموحدة؟",
+            options = listOf("تحويل اتجاه التغذية للأحمال تلقائياً وبسرعة إلى مولد الديزل الاحتياطي عند انقطاع الكهرباء التجارية لحماية الأجهزة", "المحافظة على حرارة الكروت الإلكترونية وتبريدها", "توجيه حزم البيانات Logicals وسرعات المشترك آلياً", "تحكم تلقائي في تفريغ سعة المكثفات ورفع فولت البطارية"),
+            correctIndex = 0,
+            explanation = "لوحة الـ ATS تراقب كهرباء الشبكة العمومية باستمرار. عند حصول عطل أو غياب تام للكهرباء، تقوم اللوحة فوراً بدق وإعطاء أمر لتشغيل مولد الديزل وتعديل اتجاه لوحات المفاتيح والملفات للأحمال (Relay Switches) لتتغذى من المولد تلقائياً دون تداخل يدوي.",
+            category = "Power",
+            englishText = "What is the function of the Automatic Transfer Switch (ATS) in telecom power hubs?",
+            englishOptions = listOf("Automatically routing structural supply loads to the standby generator when public grid power fails", "Safeguarding delicate hardware units under low temperature bounds", "Switching customer bandwidth properties dynamically using OSPF", "Regulating capacitor discharge rates to boost DC cell voltages"),
+            englishExplanation = "An ATS acts as a fast automatic power routing relay monitor. Upon detecting a commercial utility blackout, it signals the Backup Diesel Generator to ignite and instantly shunts the power busbars to the backup generator source.",
+            diagramType = "ats_switch"
+        ),
+        Question(
+            id = "pwr_ext_04",
+            text = "عند تحويل طاقة التيار المتردد AC العمومية إلى طاقة مستمرة DC لتشغيل أجهزة السنترال، ما هو الجهاز المخصص وما ناتج فولت التشغيل؟",
+            options = listOf("جهاز الموحد (Rectifier) ويؤمن طاقة مستمرة بقيمة -48 فولت تيار مستمر DC", "المحول الـ Transformer ويؤمن تيار متردد بـ 220 فولت AC", "جهاز العاكس (Inverter) ويغذي كوابين الفايبر بباور ليزري مشع", "مفتاح التحويل ATS ويؤمن طاقة مستمرة بقيمة -12 فولت DC"),
+            correctIndex = 0,
+            explanation = "لوحة الـ Rectifier هي صمام التوجيه الذي يجمع الثنائيات وفلاتر التسوية لتحويل التيار المتردد AC إلى تيار مستمر DC بقيمة -48V المغذي الأساسي للاتصالات، وبذات الوقت يشحن البطاريات بطريقة الشحن العائم لمنع سقوط الخدمة.",
+            category = "Power",
+            englishText = "Which device converts commercial AC power to stable DC power for telecom networks, and what is its nominal output voltage?",
+            englishOptions = listOf("The Rectifier, outputting a nominal stable voltage of -48V DC", "The Transformer, outputting a nominal current of 220V AC", "The Inverter, outputting a highly targeted laser voltage stream", "The ATS relay switch, outputting an continuous load of -12V DC"),
+            englishExplanation = "A Rectifier cabinet is the primary DC powertrain of a switch room. It rectifies commercial 220V/380V AC into -48V DC to power sensitive telecom circuits and maintain backup battery banks in float charge mode.",
+            diagramType = "rectifier"
+        ),
+        Question(
+            id = "pwr_ext_05",
+            text = "لكتابة وحساب الجهد الكهربائي في شبكات تيار ثلاثي الطور (Three-Phase System)، ما العلاقة بين جهد الخط (Line-to-Line) وجهد الوجه (Phase-to-Neutral)؟",
+            options = listOf("VL = √3 × VP (جهد الخط يساوي جذر 3 مضروباً في جهد الوجه)", "VL = VP (جهد الخط مساوي تماماً لجهد الوجه)", "VL = VP / √3 (جهد الخط مساوٍ لجهد الوجه مقسوماً على جذر 3)", "VL = 3 × VP (جهد الخط يساوي ثلاثة أضعاف جهد الوجه)"),
+            correctIndex = 0,
+            explanation = "في توصيلة النجمة (Star/Wye Connection) لجهد الـ 3-Phase، ينشأ فارق زاوية بمقدار 120 درجة بين الأطوار، مما يجعل جهد الخط بين طورين VL يساوي حاصل ضرب جذر 3 (حوالي 1.732) في جهد طور واحد VP (مثال: VP=220V يعطي VL=380V).",
+            category = "Power",
+            englishText = "In a balanced Wye/Star three-phase electrical layout, what is the relation between Line Voltage (VL) and Phase Voltage (VP)?",
+            englishOptions = listOf("VL = sqrt(3) * VP", "VL = VP", "VL = VP / sqrt(3)", "VL = 3 * VP"),
+            englishExplanation = "Under standard Star systems, Phase potentials are offset by 120 degrees. The combined potential difference between any two line cables (VL) exceeds the single phase-to-neutral potential (VP) by a factor of root 3.",
+            diagramType = "battery_series"
+        ),
+        Question(
+            id = "pwr_ext_06",
+            text = "لإنشاء بنك بطاريات تشغيل سعة اتصالات بجهد تغذية سالب -48V DC باستخدام خلايا رصاص حمضية بجهد خلية 2V، كيف يتسنى ربطها معاً لجمع الجهد؟",
+            options = listOf("توصيل 24 خلية بالكامل على التوالي (In Series Connection)", "توصيل 24 خلية بالكامل على التوازي (In Parallel Connection)", "توصيل 12 خلية توازي مع 12 خلية لجمع الممانعة", "ربطها بمقاومة تخفيض وتوصيل عشوائي"),
+            correctIndex = 0,
+            explanation = "التوصيل على التوالي (Series Connection) يجمع الجهود الكهربية بالتراكم بينما يحافظ على استقرار التيار المار بالشبكة. ضرب جهد الخلية الرصاصية بالخلية الواحدة (2V) بعدد الخلايا (24 خلية) يمنحنا الـ 48V المستمر للتسليم بالسنترال.",
+            category = "Power",
+            englishText = "To construct a standard telecom backup battery bank of -48V DC using 2V Lead-Acid battery cells, how should they be connected?",
+            englishOptions = listOf("Connecting 24 cells in Series", "Connecting 24 cells in Parallel", "Connecting 12 cells in parallel with another 12 in series", "Using shunt resistors with random series loops"),
+            englishExplanation = "Connecting DC cells in series accumulates their individual voltages. Arranging 24 cells of lead-acid (each having a nominal potential of 2V) in series sums to the standard -48V DC busbar requirement.",
+            diagramType = "battery_series"
+        ),
+        Question(
+            id = "pwr_ext_07",
+            text = "عند توصيل 4 بطاريات رصاص حمضية (سعة كل منها 100AH وجهدها الاسمي 12V) على التوالي (In Series)، ما هو الجهد الإجمالي والسعة الكلية لشرط التحميل الناتج؟",
+            options = listOf(
+                "الجهد الإجمالي = 48V والسعة الكلية = 100AH",
+                "الجهد الإجمالي = 48V والسعة الكلية = 400AH",
+                "الجهد الإجمالي = 12V والسعة الكلية = 400AH",
+                "الجهد الإجمالي = 24V والسعة الكلية = 200AH"
+            ),
+            correctIndex = 0,
+            explanation = "عند ربط البطاريات على التوالي (In Series)، يتم جمع جهود الخلايا (12V * 4 = 48V)، بينما تظل سعة الأمبير-ساعة الكلية مساوية لسعة بطارية منفردة واحدة (100AH). أما عند الربط التوازي فتنجمع السعات ويظل الفولت ثابتاً.",
+            category = "Power",
+            englishText = "When connecting 4 lead-acid batteries (each rated at 12V and 100AH capacity) in a series configuration, what is the resulting voltage and capacity?",
+            englishOptions = listOf(
+                "Total voltage = 48V and total capacity = 100AH",
+                "Total voltage = 48V and total capacity = 400AH",
+                "Total voltage = 12V and total capacity = 400AH",
+                "Total voltage = 24V and total capacity = 200AH"
+            ),
+            englishExplanation = "Connecting battery blocks in series accumulates their potential differences (12V * 4 = 48V) while the total Ampere-Hour capacity remains identical to a single cell (100AH). In contrast, a parallel hookup accumulates capacities while preserving nominal voltage.",
+            diagramType = "battery_series"
+        ),
+        Question(
+            id = "pwr_ext_08",
+            text = "ما هو الهدف الأساسي من تركيب واستعمال بنوك المكثفات (Capacitor Banks) في كبائن وغرف الطاقة المتكاملة بالسنترالات الكبيرة؟",
+            options = listOf(
+                "تحسين معامل القدرة (Power Factor cos θ) لتقليل القدرة غير الفعالة (Reactive Power) وتوفير الوقود وحماية المحولات ونقاء التيار المتردد",
+                "تحويل فولت التشغيل المستمر من -48V DC إلى تيار متردد AC بجهد 220V",
+                "تصفية مستويات الضوضاء الليزرية وعزل نبضات قياس الـ OTDR بالفايبر",
+                "تأمين تبريد كبائن الشبكة ورفع سرعة معالجة حزم البيانات والروابط"
+            ),
+            correctIndex = 0,
+            explanation = "تحتوي السنترالات على أحمال حثية ضخمة (Inductive Loads) كالمحولات ومحركات التبريد والمولدات، ما يؤدي لخفض معامل القدرة (Power Factor). تعمل بنوك المكثفات على توريد قدرة غير فعالة سعوية (Capacitive VAR) تعاكس الحثية لتصحيح معامل القدرة وتخفيض الفقد بالتيار.",
+            category = "Power",
+            englishText = "What is the primary objective of implementing Capacitor Banks in major telecom exchange power systems?",
+            englishOptions = listOf(
+                "Improving the Power Factor (cos θ) to minimize reactive power losses, maximizing utility efficiency and protecting heavy transformers",
+                "Converting the nominal operational stable voltage from -48V DC to 220V AC alternative current",
+                "Filtering laser light fluctuations and isolating optical OTDR traces",
+                "Cooling structural cabinet arrays and boosting data pack forwarding routing protocols"
+            ),
+            englishExplanation = "Heavy inductive equipment (like exchange fan motors or transformers) lowers the power factor. Capacitor banks supply capacitive reactive power (leading VAR) to counteract inductive reactive power, raising the power factor (cos θ) near unity and lowering transformer line strains.",
+            diagramType = "ohms_law"
+        ),
+        Question(
+            id = "pwr_ext_09",
+            text = "لماذا يفضل استخدام بطاريات الرصاص الحمضية من النوع (VRLA - Valve Regulated Lead Acid) في كبائن الـ MSAN الخارجية والسنترالات الطرفية؟",
+            options = listOf(
+                "لأنها بطاريات مغلقة تماماً ولا تتطلب الصيانة أو ملء الماء المقطر (Zero Maintenance) ولا تسرب الغازات الحارقة والسامة داخل الكبائن المغلقة لكونها مزودة بصمامات تنظيمية",
+                "لأنها تمنح خروج الليزر لكوابل الألياف الضوئية لمسافات تتخطى 80 كيلومتر",
+                "لتجنيب مهندسو الاتصالات مشكلات قناع الشبكة (Subnet Mask) وانقسام الـ IP",
+                "لكونها تقوم بعمل المولد الاحتياطي والديزل دون تبريد أو وقود ديزل"
+            ),
+            correctIndex = 0,
+            explanation = "بطاريات VRLA (سواء الجيل أو VRLA AGM) هي بطاريات خالية من الصيانة (Maintenance-free)، مغلقة بأحكام وبها صمام أمان لإطلاق الغاز فقط عند الضغط الزائد. وهذا يمنع التآكل، ويسهل تركيبها بأي وضعية، ويحمي مكونات كابينة الـ MSAN الحساسة جداً للرطوبة والغازات الحمضية.",
+            category = "Power",
+            englishText = "Why are VRLA (Valve Regulated Lead Acid) backup batteries preferred inside outdoor MSAN cabinets and core exchanges?",
+            englishOptions = listOf(
+                "They are completely sealed and maintenance-free, emitting virtually no volatile gas or acid spray, making them safest for tight electronic compartments",
+                "They enhance OLT laser diode outputs to transmit data streams up to 80 km",
+                "They bypass subnetting calculation bounds and local IP partition failures",
+                "They actively replace standby fuel generator motors without burning solar or oil"
+            ),
+            englishExplanation = "VRLA batteries utilize gas recombination technology. Oxygen generated at the positive plates is absorbed back inside, meaning zero water top-ups (maintenance-free) and no acidic emissions that would damage adjacent MSAN cards.",
+            diagramType = "battery_series"
+        ),
+        Question(
+            id = "pwr_ext_10",
+            text = "في المولدات الكهربائية وعالم الطاقة بالسنترالات، ما هي السرعة التزامنية (Synchronous Speed - Ns) لتردد كهرباء عمومي 50Hz بمولد يحتوي على 4 أقطاب (Poles)؟",
+            options = listOf(
+                "1500 دورة في الدقيقة (RPM)، طبقاً للمعادلة الرياضية Ns = 120 × f / P",
+                "3000 دورة في الدقيقة (RPM)، لحث الطور الفردي الأسرع",
+                "1000 دورة في الدقيقة (RPM)، لتأمين توقيتات أحمال الطوارئ",
+                "1800 دورة في الدقيقة (RPM)، لمطابقة مولدات تيار 60Hz"
+            ),
+            correctIndex = 0,
+            explanation = "السرعة التزامنية للمولد تعتمد على علاقة التردد f بعدد الأقطاب المغناطيسية P بالقانون: Ns = 120 * f / P. بتطبيق الأرقام f = 50Hz و P = 4 poles، نجد أن Ns = 120 * 50 / 4 = 1500 RPM (دورة في الدقيقة).",
+            category = "Power",
+            englishText = "In telecom backup diesel generators, what is the Synchronous Speed (Ns) required for a output frequency of 50Hz with a 4-pole alternator?",
+            englishOptions = listOf(
+                "1500 RPM, using the standard engineering formula Ns = 120 * f / P",
+                "3000 RPM, to handle high-speed single phase induction loops",
+                "1000 RPM, configured for emergency baseline current demands",
+                "1800 RPM, designed exclusively for 60Hz grid standards"
+            ),
+            englishExplanation = "Alternative synchronous speeds depend on frequency f and alternator magnetic poles P. Using Ns = (120 * f) / P, with f = 50Hz and P = 4, the resulting rotation timing equates strictly to 120 * 50 / 4 = 1500 RPM.",
+            diagramType = "battery_series"
+        )
+    )
+
+    val itInfraQuestions = listOf(
+        Question(
+            id = "it_01",
+            text = "ما هو الفرق الرئيسي بين الخوادم الفيزيائية (Physical Servers) والأنظمة الوهمية (Virtual Machines)؟",
+            options = listOf(
+                "الأنظمة الوهمية تشارك موارد جهاز مادي واحد (CPU, RAM) عبر طبقة Hypervisor مثل VMware أو KVM",
+                "الأنظمة الوهمية لا تتطلب أي موارد مادية ويمكن تشغيلها على أي جهاز محمول",
+                "الخوادم الفيزيائية أسرع بـ 100 مرة دائماً ويفضل استخدامها في كافة تطبيقات الداتا سنتر",
+                "لا يوجد أي فرق، كلاهما مصطلحات تسويقية لشركات الاستضافة"
+            ),
+            correctIndex = 0,
+            category = "IT INFRASTRUCTURE",
+            explanation = "تقنية المحاكاة الافتراضية (Virtualization) تسمح بتشغيل عدة أجهزة وهمية مستقلة على خادم مادي واحد عن طريق برنامج Hypervisor، مما يوفر تكلفة المعدات والطاقة في الداتا سنتر.",
+            englishText = "What is the main difference between Physical Servers and Virtual Machines (VMs)?",
+            englishOptions = listOf(
+                "VMs share the hardware resources of a single physical server via a Hypervisor like VMware or KVM",
+                "VMs do not require hardware and run on any mobile device",
+                "Physical servers are always 100x faster and preferred for every datacenter app",
+                "There is no difference, both are marketing terms"
+            ),
+            englishExplanation = "Virtualization allows running multiple isolated VMs on a single physical host using a hypervisor, saving hardware costs and energy in data centers."
+        ),
+        Question(
+            id = "it_02",
+            text = "في أنظمة تشغيل Linux الخاصة بالخوادم، ما هو الأمر المستخدم لعرض استهلاك المعالج والذاكرة بشكل حي ومباشر؟",
+            options = listOf("top", "dir", "ipconfig", "chmod"),
+            correctIndex = 0,
+            category = "IT INFRASTRUCTURE",
+            explanation = "الأمر `top` أو `htop` يُستخدم في بيئة اللينكس لمراقبة العمليات النشطة واستهلاك الموارد الحية (CPU, RAM). بينما chmod لتغيير الصلاحيات، و ipconfig في الويندوز.",
+            englishText = "In Linux server environments, which command is used to display live CPU and memory usage?",
+            englishOptions = listOf("top", "dir", "ipconfig", "chmod"),
+            englishExplanation = "The `top` (or `htop`) command is used in Linux to monitor active processes and live resource usage. `chmod` alters file permissions, and `ipconfig` is for Windows network config."
+        ),
+        Question(
+            id = "it_03",
+            text = "ماذا يعني مصطلح RAID 1 في بنية تخزين البيانات (Storage) المركزية؟",
+            options = listOf(
+                "عملية دمج عدة أقراص لزيادة المساحة فقط بدون حماية",
+                "عملية النسخ المتطابق (Mirroring) للبيانات لتوفير التكرارية والحماية في حال تلف قرص",
+                "طريقة لتوزيع حزم الشبكة عبر عدة سنترالات",
+                "نوع من بروتوكولات التوجيه في ملقمات الـ DNS"
+            ),
+            correctIndex = 1,
+            category = "IT INFRASTRUCTURE",
+            explanation = "نظام RAID 1 يقوم بكتابة نفس البيانات على قرصين أو أكثر، بحيث إذا تعطل أحدها، تستمر الخدمة من القرص المطابق لتوفير الحماية والموثوقية العالية (Redundancy).",
+            englishText = "What does RAID 1 mean in centralized storage infrastructure?",
+            englishOptions = listOf(
+                "Combining disks to strictly increase storage space with no protection",
+                "Data mirroring across multiple disks to provide redundancy and fault tolerance",
+                "A method of balancing network packets across multiple exchanges",
+                "A routing protocol used in DNS servers"
+            ),
+            englishExplanation = "RAID 1 writes identical data across two or more drives (Mirroring). If one drive fails, the system continues operating from the mirrored drive, ensuring high reliability."
+        ),
+        Question(
+            id = "it_04",
+            text = "ما هو بروتوكول الشبكات الأساسي الذي يعتمد عليه نظام Active Directory (AD) لمزامنة وتوثيق حسابات المستخدمين في بيئة مايكروسوفت؟",
+            options = listOf("LDAP", "FTP", "POP3", "BGP"),
+            correctIndex = 0,
+            category = "IT INFRASTRUCTURE",
+            explanation = "يعتمد مايكروسوفت Active Directory بشكل رئيسي على بروتوكول LDAP (Lightweight Directory Access Protocol) للاستعلام عن وإدارة صلاحيات وهويات المستخدمين داخل الشبكة.",
+            englishText = "Which networking protocol does Microsoft Active Directory (AD) primarily rely on for user authentication and synchronization?",
+            englishOptions = listOf("LDAP", "FTP", "POP3", "BGP"),
+            englishExplanation = "Microsoft AD heavily relies on the LDAP (Lightweight Directory Access Protocol) for verifying identities and managing permissions across a domain network."
+        ),
+        Question(
+            id = "it_05",
+            text = "في مراكز البيانات (Data Centers)، يشار إلى U بأنه وحدة قياس. ماذا يُقصد برقم 1U؟",
+            options = listOf(
+                "وحدة الارتفاع القياسية لمعدات الكبائن وتعادل 1.75 بوصة",
+                "وحدة تبريد تعادل 1 حصان من استطاعة التكييف",
+                "استهلاك 1 واط من الطاقة الكهربائية",
+                "سرعة اتصال 1 جيجا بت في الثانية عبر الفايبر"
+            ),
+            correctIndex = 0,
+            category = "IT INFRASTRUCTURE",
+            explanation = "الـ Rack Unit أو (U) هو وحدة قياس الارتفاع القياسية للسيرفرات والمفاتيح داخل الركات (Racks)، ويبلغ 1.75 بوصة (44.45 ملم). السيرفرات تأتي بأحجام مثل 1U أو 2U أو 4U.",
+            englishText = "In Data Centers, what does the measurement unit '1U' refer to?",
+            englishOptions = listOf(
+                "The standard rack height unit, equal to 1.75 inches",
+                "A cooling metric equal to 1 HP of AC power",
+                "Consumption of 1 Watt of electrical power",
+                "1 Gigabit per second connection speed over fiber"
+            ),
+            englishExplanation = "A Rack Unit (U or RU) is an EIA standard measuring the height of equipment in a 19-inch or 23-inch rack. 1U equals exactly 1.75 inches (44.45 mm)."
+        ),
+        Question(
+            id = "it_06",
+            text = "ما هو الفرق بين Docker و Virtual Machine التقليدية؟",
+            options = listOf(
+                "الدوكر يعتمد الموارد المادية بالكامل أما VM سائلة ولا تحتاج عتاد",
+                "الדוكر يشارك نواة نظام التشغيل (Kernel) نفسه مع خفة وسرعة الإقلاع، بينما الـ VM تتطلب نظام تشغيل كامل لكل نسخة",
+                "دوكر يُستخدم للشاشات وبرامج التصميم فقط ولا يدعم السيرفرات الوهمية",
+                "لا يوجد أي فرق تقني على الإطلاق"
+            ),
+            correctIndex = 1,
+            category = "IT INFRASTRUCTURE",
+            explanation = "الـ Docker يعتمد على الحاويات (Containers) التي تتشارك نظام التشغيل الأساسي مما يجعلها أخف بكثير وتستهلك موارد أقل وتقلع في ثوانٍ. الـ VM تتطلب Guest OS كامل لكل آلة وهمية وتحتاج موارد RAM و CPU مستقلة وكبيرة.",
+            englishText = "What is the primary difference between Docker containers and traditional Virtual Machines?",
+            englishOptions = listOf(
+                "Docker relies entirely on hardware, while VMs are fluid and need no hardware",
+                "Docker containers share the host's OS kernel for lightweight speed, whereas VMs require a full Guest OS instance per machine",
+                "Docker is used strictly for design apps and cannot run web servers",
+                "There is absolutely no technical difference"
+            ),
+            englishExplanation = "Docker utilizes containerization, sharing the host OS kernel. This drastically cuts overhead, making containers boot in milliseconds. VMs run a fully dedicated Guest OS over a hypervisor, consuming significantly more memory and CPU."
+        ),
+        Question(
+            id = "it_07",
+            text = "ما الذي يعنيه مصطلح High Availability (HA) في الخوادم وقواعد البيانات؟",
+            options = listOf(
+                "أن الخادم يعمل بأعلى دقة شاشة ممكنة وبسرعة مشاهدة 4K",
+                "أن الخادم متاح بنسبة توافر عالية (مثل 99.999٪) لتجنب الانقطاع (Downtime) عن طريق التكرارية والموازنة",
+                "أن قاعدة البيانات معروضة للجميع عبر الإنترنت بطريقة مفتوحة المصدر مجاناً",
+                "أن مساحة القرص الثابت أكثر من 1 تيرابايت متاحة للمستخدم الواحد"
+            ),
+            correctIndex = 1,
+            category = "IT INFRASTRUCTURE",
+            explanation = "التوافر العالي High Availability يعني أن الأنظمة مصممة لتعمل بشكل مستمر وبفترات توقف قريبة من الصفر (مثل 99.999% من السنة) باستخدام السيرفرات الاحتياطية وتوزيع الأحمال.",
+            englishText = "What does High Availability (HA) mean in the context of servers and databases?",
+            englishOptions = listOf(
+                "The server operates at the highest display resolution up to 4K",
+                "The system is operational with an extreme uptime metric (e.g., 99.999%), minimizing downtime via redundancy and load balancing",
+                "The database is highly available for anyone online as open source",
+                "Disk space exceeds 1 Terabyte of available storage natively"
+            ),
+            englishExplanation = "High Availability (HA) refers to systems that are durable and likely to operate continuously without failure for a long time. It involves avoiding single points of failure with redundant servers and clusters."
+        ),
+        Question(
+            id = "it_08",
+            text = "في أوامر توزيع اللينكس، ما هي الوظيفة الأساسية للأمر `grep`؟",
+            options = listOf(
+                "متابعة استهلاك المعالج وتبريد النظام",
+                "البحث عن نصوص أو أنماط معينة داخل الملفات والمخرجات",
+                "ضغط الملفات ونقلها عبر السيرفرات المتباعدة",
+                "تغيير ملكية الملف للمستخدم الأساسي root"
+            ),
+            correctIndex = 1,
+            category = "IT INFRASTRUCTURE",
+            explanation = "أمر `grep` يستخدم بالأساس للبحث وتصفية (Filtering) النصوص والمخرجات المطابقة لنمط نصي محدد، وهو من أهم الأدوات لاكتشاف الأخطاء في ملفات السجلات (Logs).",
+            englishText = "In Linux distributions, what is the primary function of the `grep` command?",
+            englishOptions = listOf(
+                "Monitoring CPU usage and system thermals",
+                "Searching for specific text strings or patterns within files or direct output streams",
+                "Compressing files and transferring them across remote servers",
+                "Changing file ownership to the root administrator account"
+            ),
+            englishExplanation = "`grep` (global regular expression print) is a powerful command-line utility for searching plain-text data sets for lines that match a regular expression, predominantly used for parsing log files."
+        ),
+        Question(
+            id = "it_09",
+            text = "أي مما يلي يُعد وظيفة أساسية لجهاز Load Balancer في بنية الخوادم؟",
+            options = listOf(
+                "أرشفة ومسح بيانات الخوادم القديمة دورياً",
+                "توزيع حمولة ترافيك الشبكة على عدة خوادم لمنع سقوط سيرفر واحد",
+                "تشفير الإشارة الضوئية ومنع تداخل ذبذبات الراديو",
+                "مد النظام البصري بالطاقة الكهربية بشكل مستمر -48v"
+            ),
+            correctIndex = 1,
+            category = "IT INFRASTRUCTURE",
+            explanation = "موازن الحمل (Load Balancer) يقوم بتوزيع حركة زيارات الشبكة بالتساوي أو وفق خوارزمية محددة على مجموعة من الخوادم (Server Pool) لمنع التحميل الزائد على سيرفر وتوفير الموثوقية.",
+            englishText = "Which of the following is the primary function of a Load Balancer in server infrastructure?",
+            englishOptions = listOf(
+                "Routinely archiving and clearing obsolete server databases",
+                "Distributing incoming network traffic across multiple servers to prevent single-instance overload",
+                "Encrypting optical signals to prevent radio interference",
+                "Supplying the optical system with continuous -48V electrical power"
+            ),
+            englishExplanation = "A Load Balancer efficiently routes client requests across multiple servers, ensuring no single server bears too much demand, improving responsiveness and avoiding application crashes."
+        ),
+        Question(
+            id = "it_10",
+            text = "في نظام مراكز البيانات السحابية، ماذا يقصد بـ IaaS؟",
+            options = listOf(
+                "Infrastructure as a Service (البنية التحتية كخدمة) للوصول إلى سيرفرات وتخزين سحابي",
+                "Internet as a Source للوصول السطحي الموجه",
+                "IP and Addressing Storage لنظم فايبر GPON",
+                "International Asymmetric Systems لربط البوابات الدولية"
+            ),
+            correctIndex = 0,
+            category = "IT INFRASTRUCTURE",
+            explanation = "مصطلح IaaS يتيح للشركات استئجار وتأجير السيرفرات الوهمية والشبكات ومساحات التخزين عبر الخدمات السحابية مثل (AWS أو السحابة المحلية لـ WE) بدلا من شرائها ماديا.",
+            englishText = "In cloud datacenter systems, what does 'IaaS' stand for?",
+            englishOptions = listOf(
+                "Infrastructure as a Service: on-demand access to virtual servers and cloud storage",
+                "Internet as a Source: a specific surface routing method",
+                "IP and Addressing Storage for GPON setups",
+                "International Asymmetric Systems for linking international gateways"
+            ),
+            englishExplanation = "IaaS (Infrastructure as a Service) is a cloud computing offering where a vendor provides users access to computing resources such as servers, networking, and storage over the internet (e.g., Azure VM, AWS EC2)."
+        ),
+        Question(
+            id = "it_11",
+            text = "عند إدارة سيرفر لينكس عن بعد، ما هو البروتوكول المشفر الأكثر أماناً واستخداماً للحصول على جلسة Shell؟",
+            options = listOf("Telnet", "SSH", "FTP", "HTTP"),
+            correctIndex = 1,
+            category = "IT INFRASTRUCTURE",
+            explanation = "بروتوكول Secure Shell (SSH) يعمل على المنفذ 22 افتراضياً ويقوم بتشفير الأوامر المتبادلة بين مدير النظام والسيرفر، مما يجعله آمناً تماماً مقارنة بـ Telnet غير المشفر.",
+            englishText = "When administering a Linux server remotely, which encrypted protocol is most securely and commonly used to obtain a shell session?",
+            englishOptions = listOf("Telnet", "SSH", "FTP", "HTTP"),
+            englishExplanation = "Secure Shell (SSH) is a cryptographic network protocol operating largely over port 22. It securely encrypts administrative terminal sessions, unlike the obsolete and unencrypted Telnet."
+        ),
+        Question(
+            id = "it_12",
+            text = "ما هو أمر لينكس لتغيير مالك المجلد (Owner) إلى مستخدم جديد ومجموعة جديدة؟",
+            options = listOf("chgrp", "chmod", "chown", "mkdir"),
+            correctIndex = 2,
+            category = "IT INFRASTRUCTURE",
+            explanation = "الأمر `chown` (Change Owner) يستخدم لنقل ملكية ملفات لينكس بين المستخدمين (مثل `chown user:group file`). بينما `chmod` لنطاق الصلاحيات و `chgrp` للمجموعة فقط.",
+            englishText = "Which Linux command is used to change the owner and group of a directory or file?",
+            englishOptions = listOf("chgrp", "chmod", "chown", "mkdir"),
+            englishExplanation = "The `chown` command (Change Ownership) is utilized in Unix/Linux to alter the assigned owner and the assigned group of a specified file or directory structure."
+        ),
+        Question(
+            id = "it_13",
+            text = "ما الذي يميز الـ SSD على الـ HDD في خوادم قواعد البيانات الحية الدقيقة؟",
+            options = listOf(
+                "لا توجد أجزاء ميكانيكية متحركة وتوفر سرعة نقل ومعدل IOPS أعلى بكثير جداً",
+                "عمره الافتراضي أطول 10 مرات ومقاومتها للماء كاملة",
+                "رخص ثمن مساحة التخزين الخاصة بها مقارنة بالإسطوانات المغناطيسية",
+                "أنها تعتمد على الأشرطة المغناطيسية لحفظ الأرشيف لـ 100 سنة"
+            ),
+            correctIndex = 0,
+            category = "IT INFRASTRUCTURE",
+            explanation = "أقراص الحالة الصلبة (SSD) تعتمد على شرائح NAND Flash السريعة لتوفير معدلات IOPS (عمليات قراءة وكتابة بالثانية) هائلة بدون أجزاء إبرية متحركة، مما يعالج عنق الزجاجة لبطء قواعد البيانات.",
+            englishText = "What distinguishes SSDs from HDDs in high-precision active database servers?",
+            englishOptions = listOf(
+                "They have no moving mechanical parts and provide drastically higher transfer speeds and IOPS",
+                "Their lifespan is strictly 10 times longer and fully waterproof",
+                "Storage is massively cheaper than traditional magnetic platters",
+                "They rely on magnetic tape spools to archive data securely for 100 years"
+            ),
+            englishExplanation = "Solid-State Drives (SSDs) use non-volatile flash memory, vastly outperforming the mechanical latency of Hard Disk Drives (HDDs). Their immense Input/Output Operations Per Second (IOPS) prevents data bottlenecks."
+        ),
+        Question(
+            id = "it_14",
+            text = "في بروتوكولات البريد الإلكتروني، ما هو الدور الأساسي لبروتوكول SMTP؟",
+            options = listOf(
+                "استقبال وفتح رسائل البريد والإبقاء عليها في الخادم للمزامنة",
+                "تحميل وتنزيل رسالة البريد للهاتف ومسحها من الخادم تلقائياً",
+                "إرسال وتوجيه رسائل البريد الإلكتروني (Sending & Routing emails)",
+                "ترجمة عنوان البريد إلى رقم متصل عبر IP"
+            ),
+            correctIndex = 2,
+            category = "IT INFRASTRUCTURE",
+            explanation = "بروتوكول SMTP (Simple Mail Transfer Protocol) على منفذ 25 أو المشفّر 587 مسؤول عن نقل البريد بين خوادم المرسل والصادر. أما IMAP و POP3 فهما للاستقبال وقراءة البريد.",
+            englishText = "In email system protocols, what is the primary role of the SMTP protocol?",
+            englishOptions = listOf(
+                "Receiving, opening, and synchronizing mail messages stored permanently on the server",
+                "Downloading email messages locally and deleting them from the server instantly",
+                "Sending and routing outgoing email messages across MTAs",
+                "Translating email domain addresses into corresponding IP nodes"
+            ),
+            englishExplanation = "The Simple Mail Transfer Protocol (SMTP) acts predominantly as a push protocol, responsible for sending and forwarding an outgoing message towards its destination. Incoming mail is pulled using IMAP or POP3."
+        ),
+        Question(
+            id = "it_15",
+            text = "ما هي الوظيفة الأساسية لخادم DNS محلي داخل بيئة الانترانت في الشركة؟",
+            options = listOf(
+                "تحويل استعلامات الأسماء النصية لمواقع وسيرفرات الشركة الداخلية إلى عناوين أرقام IP يمكن توجيهها",
+                "تجديد وتنظيف الكوابل الضوئية آلياً لإلغاء أي تشويش",
+                "فحص الملفات المؤقتة وحذف الفيروسات",
+                "حجب وتوزيع شبكات الـ Wi-fi على الزوار والمراجعين"
+            ),
+            correctIndex = 0,
+            category = "IT INFRASTRUCTURE",
+            explanation = "نظام أسماء النطاقات (DNS) يعمل كدليل الهاتف للشبكة؛ يقوم بترجمة العناوين القابلة للقراءة البشرية (مثل intranet.te.eg) إلى عناوين الـ IP الخاصة بالسيرفرات الداخلية المطلوبة (مثل 10.0.0.5).",
+            englishText = "What is the primary function of a local DNS server within a corporate Intranet environment?",
+            englishOptions = listOf(
+                "Translating textual hostname queries into routable numeric IP addresses maps",
+                "Automatically cleaning and resetting optical cables to eliminate crosstalk",
+                "Scanning temporary caches and deleting malware",
+                "Blocking external access and routing guest Wi-fi requests strictly"
+            ),
+            englishExplanation = "The Domain Name System (DNS) is the phonebook of the Internet. A local DNS server efficiently maps human-readable domain names representing internal company applications to their corresponding server IP addresses."
+        ),
+        Question(
+            id = "it_16",
+            text = "في نظام النسخ الاحتياطي (Backups)، ما هو الفرق بين النسخ الكامل Full والنسخ التزايدي Incremental؟",
+            options = listOf(
+                "الكامل ينسخ الملفات المعطوبة، التزايدي ينسخ الملفات السليمة",
+                "الكامل ينسخ كل شيء من الصفر (أبطأ)، التزايدي ينسخ التغييرات التي حدثت فقط منذ آخر عملية نسخ كامل (أسرع)",
+                "الكامل ينفذ على الفلاشة USB العادية، التزايدي ينفذ عبر كابلات الألياف الضوئية الموصولة بالداتا سنتر",
+                "التزايدي معناه زيادة مساحة السيرفر الوهمي بشكل ديناميكي Full allocation"
+            ),
+            correctIndex = 1,
+            category = "IT INFRASTRUCTURE",
+            explanation = "في النسخ الاحتياطي Incremential لا ننسخ سوى البيانات المعدلة والجديدة، وهو يخفف الضغط ومساحة التخزين اليومية، بينما الـ Full يأخذ صورة كاملة من الممكن أن تستغرق ساعات طويلة.",
+            englishText = "In server backup strategies, what is the core difference between a Full Backup and an Incremental Backup?",
+            englishOptions = listOf(
+                "Full backups only target corrupted archives, Incremental backups archive healthy data",
+                "Full copies everything totally (slower), Incremental copies ONLY the data changed since the last backup run (faster, uses less space)",
+                "Full is mandated to USB storage, Incremental is routed exclusively over Fiber trunks",
+                "Incremental refers strictly to expanding a VM's virtual drive size dynamically"
+            ),
+            englishExplanation = "A Full Backup comprehensively clones the entire source dataset. An Incremental Backup only captures the blocks that have changed since the absolute last backup to save tremendous operation time and storage size."
+        ),
+        Question(
+            id = "it_17",
+            text = "أي تقنية تُستخدم بشكل شائع لربط وحدات التخزين المركزية (SAN) بالخوادم باستخدام كابلات الألياف الضوئية وسرعات خيالية؟",
+            options = listOf("Fibre Channel (FC)", "USB 3.0 Storage", "VGA Protocol", "DSL Analog"),
+            correctIndex = 0,
+            category = "IT INFRASTRUCTURE",
+            explanation = "شبكات الـ SAN (Storage Area Network) تعتمد أساساً على كروت وتقنية الفايبر تشانل Fibre Channel (FC) لضمان حجز نطاق ترددي ضخم وكُمون متدنٍ (Low Latency) لنقل الكتل التخزينية للسيرفر كأنها هارد ديسك محلي مباشرة.",
+            englishText = "Which underlying networking technology is natively utilized to interconnect Storage Area Networks (SANs) to host servers seamlessly over optical cables?",
+            englishOptions = listOf("Fibre Channel (FC)", "USB 3.0 Storage", "VGA Protocol", "DSL Analog"),
+            englishExplanation = "Fibre Channel (FC) is a high-speed data transfer protocol providing in-order, lossless delivery of raw block data. It acts as the backbone layer connecting external SAN arrays securely and rapidly to vital host servers."
+        )
+    )
+
+    val allQuestions = fiberQuestions + additionalFiberQuestions + ccnaQuestions + additionalCcnaQuestions + powerQuestions + additionalPowerQuestions + glossaryQuestions + itInfraQuestions + listOf(
+        Question(
+            id = "it_02",
+            text = "في أنظمة تشغيل Linux الخاصة بالخوادم، ما هو الأمر المستخدم لعرض استهلاك المعالج والذاكرة بشكل حي ومباشر؟",
+            options = listOf("top", "dir", "ipconfig", "chmod"),
+            correctIndex = 0,
+            category = "IT INFRASTRUCTURE",
+            explanation = "الأمر `top` أو `htop` يُستخدم في بيئة اللينكس لمراقبة العمليات النشطة واستهلاك الموارد الحية (CPU, RAM). بينما chmod لتغيير الصلاحيات، و ipconfig في الويندوز.",
+            englishText = "In Linux server environments, which command is used to display live CPU and memory usage?",
+            englishOptions = listOf("top", "dir", "ipconfig", "chmod"),
+            englishExplanation = "The `top` (or `htop`) command is used in Linux to monitor active processes and live resource usage. `chmod` alters file permissions, and `ipconfig` is for Windows network config."
+        )
+    )
 
     fun getRandomExam(category: String, size: Int = 5): Exam {
         val filtered = when (category) {
-            "Fiber" -> fiberQuestions
-            "CCNA" -> ccnaQuestions
-            "Power" -> powerQuestions
+            "Fiber" -> fiberQuestions + additionalFiberQuestions
+            "CCNA" -> ccnaQuestions + additionalCcnaQuestions
+            "Power" -> powerQuestions + additionalPowerQuestions
+            "IT INFRASTRUCTURE" -> itInfraQuestions
             else -> allQuestions
         }
         val targetSize = size.coerceAtMost(filtered.size)
@@ -733,12 +1422,13 @@ object QuestionsData {
             "Fiber" -> "امتحان هندسة الألياف الضوئية (FTTH/GPON)"
             "CCNA" -> "امتحان شبكات الاتصالات (Subnetting/Routing)"
             "Power" -> "امتحان أنظمة القوى والباور الاحتياطية"
+            "IT INFRASTRUCTURE" -> "امتحان خوادم البنية التحتية IT"
             else -> "الاختبار التقني الشامل لمشغلي السنترالات"
         }
         return Exam(
             title = title,
             category = category,
-            questions = shuffled.map { ExamQuestion(it) }
+            questions = shuffled.map { ExamQuestion(it.getShuffled()) }
         )
     }
 }

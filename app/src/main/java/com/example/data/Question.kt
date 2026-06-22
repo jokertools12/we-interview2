@@ -10,9 +10,12 @@ data class Question(
     val correctIndex: Int,
     val explanation: String,
     val category: String, // "Fiber", "CCNA", "Power"
+    val difficulty: String = "MEDIUM", // Added this
     val englishText: String? = null,
     val englishOptions: List<String>? = null,
-    val englishExplanation: String? = null
+    val englishExplanation: String? = null,
+    val diagramType: String? = null,
+    val tags: List<String> = emptyList() // Added this
 ) {
     fun getLocalizedText(isEnglish: Boolean): String {
         return if (isEnglish) (englishText ?: text) else text
@@ -22,6 +25,32 @@ data class Question(
     }
     fun getLocalizedExplanation(isEnglish: Boolean): String {
         return if (isEnglish) (englishExplanation ?: explanation) else explanation
+    }
+    fun getShuffled(): Question {
+        val corrIndex = correctIndex.coerceIn(0, options.lastIndex)
+        val correctTextAr = options.getOrNull(corrIndex) ?: ""
+        
+        val engOpts = englishOptions ?: List(options.size) { "" }
+        val safeEngOpts = if (engOpts.size == options.size) engOpts else List(options.size) { "" }
+        
+        val zipped = options.zip(safeEngOpts)
+        val shuffledZipped = zipped.shuffled()
+        
+        val newOptions = shuffledZipped.map { it.first }
+        val newCorrectIndex = newOptions.indexOf(correctTextAr).coerceAtLeast(0)
+        
+        val newEnglishOptions = if (englishOptions != null) {
+            shuffledZipped.map { it.second }
+        } else {
+            null
+        }
+        
+        return this.copy(
+            options = newOptions,
+            correctIndex = newCorrectIndex,
+            englishOptions = newEnglishOptions,
+            diagramType = this.diagramType
+        )
     }
 }
 
@@ -53,5 +82,12 @@ data class InterviewEvaluation(
     val analysisEn: String,
     val tipsAr: String,
     val tipsEn: String
+)
+
+data class MockAnsweredItem(
+    val questionAr: String,
+    val questionEn: String,
+    val userAnswer: String,
+    val evaluation: InterviewEvaluation
 )
 
